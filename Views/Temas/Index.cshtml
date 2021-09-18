@@ -1,0 +1,56 @@
+﻿    @model IEnumerable<MeuCantinhoDeEstudos3.Models.Tema>
+
+@{
+    ViewBag.Title = "Temas";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <h2>Temas</h2>
+
+        <p>
+            @Html.ActionLink("Adicionar tema", "Create")
+        </p>
+
+        <form action="/Temas/Index" method="get">
+            <div class="form-inline" accesskey="">
+                <span>Filtre pelo nome</span>
+                <input type="text" class="form-control" name="search" placeholder="Tema" value="@ViewBag.CurrentSearch" />
+                <input type="submit" value="Pesquisar" class="btn btn-primary" /> |
+                @Html.ActionLink("Remover filtro", "Index")
+            </div>
+        </form>
+    </div>
+</div>
+
+<br />
+
+@Html.LabelFor(m => m)
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Materia.Nome)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Nome)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Materia.Nome)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Nome)
+        </td>
+        <td>
+            @Html.ActionLink("Editar", "Edit", new { id=item.TemaId }) |
+            @Html.ActionLink("Detalhes", "Details", new { id=item.TemaId }) |
+            @Html.ActionLink("Excluir", "Delete", new { id=item.TemaId })
+        </td>
+    </tr>
+}
+
+</table>

@@ -1,0 +1,55 @@
+﻿@model IEnumerable<MeuCantinhoDeEstudos3.Models.Materia>
+
+@{
+    ViewBag.Title = "Matérias";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <h2>Matérias</h2>
+
+        <p>
+            @Html.ActionLink("Adicionar matéria", "Create")
+        </p>
+
+        <form action="/Materias/Index" method="get">
+            <div class="form-inline" accesskey="">
+                <span>Filtre pelo nome</span>
+                <input type="text" class="form-control" name="search" placeholder="Matéria" value="@ViewBag.CurrentSearch" />
+                <input type="submit" value="Pesquisar" class="btn btn-primary" /> |
+                @Html.ActionLink("Remover filtro", "Index")
+            </div>
+        </form>
+    </div>
+</div>
+
+<br />
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Nome)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CorIdentificacao)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Nome)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CorIdentificacao)
+        </td>
+        <td>
+            @Html.ActionLink("Editar", "Edit", new { id=item.MateriaId }) |
+            @Html.ActionLink("Detalhes", "Details", new { id=item.MateriaId }) |
+            @Html.ActionLink("Excluir", "Delete", new { id=item.MateriaId })
+        </td>
+    </tr>
+}
+
+</table>

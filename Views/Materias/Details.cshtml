@@ -1,0 +1,42 @@
+﻿@model MeuCantinhoDeEstudos3.Models.Materia
+
+@{
+    ViewBag.Title = "Detalhes";
+}
+
+<h2>Detalhes</h2>
+
+<div>
+    <h4>Matéria</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Nome)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Nome)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CorIdentificacao)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CorIdentificacao)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Temas)
+        </dt>
+
+        @foreach (var tema in Model.Temas)
+        {
+            <dd>@Html.DisplayFor(modelItem => tema.Nome)</dd>
+        }
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Editar", "Edit", new { id = Model.MateriaId }) |
+    @Html.ActionLink("Voltar", "Index")
+</p>
