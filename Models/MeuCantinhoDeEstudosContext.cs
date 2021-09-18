@@ -14,8 +14,6 @@ namespace MeuCantinhoDeEstudos3.Models
         public MeuCantinhoDeEstudosContext()
             : base("DefaultConnection")
         {
-            //Database.SetInitializer<MeuCantinhoDeEstudosContext>(new CreateDatabaseIfNotExists<MeuCantinhoDeEstudosContext>());
-            //Configuration.ProxyCreationEnabled = false;
         }
 
         public static MeuCantinhoDeEstudosContext Create()
@@ -23,17 +21,11 @@ namespace MeuCantinhoDeEstudos3.Models
             return new MeuCantinhoDeEstudosContext();
         }
 
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
-        {
-            //modelBuilder.Entity<MateriaAuditoria>().ToTable("MateriaAuditoria");
-            //modelBuilder.Entity<TemaAuditoria>().ToTable("TemaAuditoria");
-
-            base.OnModelCreating(modelBuilder);
-        }
-
         public System.Data.Entity.DbSet<MeuCantinhoDeEstudos3.Models.Materia> Materias { get; set; }
 
         public System.Data.Entity.DbSet<MeuCantinhoDeEstudos3.Models.Tema> Temas { get; set; }
+        public System.Data.Entity.DbSet<MeuCantinhoDeEstudos3.Models.MateriaAuditoria> MateriaAuditoria { get; set; }
+        public System.Data.Entity.DbSet<MeuCantinhoDeEstudos3.Models.TemaAuditoria> TemaAuditoria { get; set; }
 
         public static bool IsAssignableToGenericType(Type givenType, Type genericType)
         {
@@ -59,7 +51,7 @@ namespace MeuCantinhoDeEstudos3.Models
             try
             {
                 var currentTime = DateTime.Now;
-                foreach (var entry in ChangeTracker.Entries().Where(e => e.Entity != null && 
+                foreach (var entry in ChangeTracker.Entries().Where(e => e.Entity != null &&
                 IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade<>))))
                 {
                     if (entry.State == EntityState.Added)
@@ -91,24 +83,7 @@ namespace MeuCantinhoDeEstudos3.Models
                     }
                 }
 
-                foreach (var entidade in ChangeTracker.Entries())
-                {
-                    var tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[0].GenericTypeArguments[0];
-                    var registroTabelaAuditoria = Activator.CreateInstance(tipoTabelaAuditoria);
-
-                    // Isto aqui é lento, mas serve como exemplo. 
-                    // Depois procure trocar por FastMember ou alguma outra estratégia de cópia.
-                    foreach (var propriedade in entidade.Entity.GetType().GetProperties())
-                    {
-                        registroTabelaAuditoria.GetType()
-                                               .GetProperty(propriedade.Name)
-                                               .SetValue(registroTabelaAuditoria, entidade.Entity.GetType().GetProperty(propriedade.Name).GetValue(entidade.Entity, null));
-                    }
-
-                    this.Set(registroTabelaAuditoria.GetType()).Add(registroTabelaAuditoria);
-                }
-
-                return base.SaveChanges();
+                base.SaveChanges();
             }
             catch (DbEntityValidationException ex)
             {
@@ -122,19 +97,25 @@ namespace MeuCantinhoDeEstudos3.Models
 
                 throw new DbEntityValidationException(exceptionsMessage, ex.EntityValidationErrors);
             }
-            catch(DbUpdateException ex)
-            {
-                foreach (var eve in ex.Entries)
-                {
-                    Console.WriteLine(eve.Entity);
-                    foreach (var item in eve.CurrentValues.PropertyNames)
-                    {
-                        Console.WriteLine(item);
-                    }
-                }
-                throw;
-            }
-        }
 
+            foreach (var entidade in ChangeTracker.Entries())
+            {
+                var tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[0].GenericTypeArguments[0];
+                var registroTabelaAuditoria = Activator.CreateInstance(tipoTabelaAuditoria);
+
+                // Isto aqui é lento, mas serve como exemplo. 
+                // Depois procure trocar por FastMember ou alguma outra estratégia de cópia.
+                foreach (var propriedade in entidade.Entity.GetType().GetProperties())
+                {
+                    registroTabelaAuditoria.GetType()
+                                           .GetProperty(propriedade.Name)
+                                           .SetValue(registroTabelaAuditoria, entidade.Entity.GetType().GetProperty(propriedade.Name).GetValue(entidade.Entity, null));
+                }
+
+                this.Set(registroTabelaAuditoria.GetType()).Add(registroTabelaAuditoria);
+            }
+
+            return base.SaveChanges();
+        }
     }
 }

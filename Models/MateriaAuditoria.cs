@@ -12,7 +12,6 @@ namespace MeuCantinhoDeEstudos3.Models
     {
         [Key]
         public int Id { get; set; }
-        [ForeignKey(nameof(Materia))]
         public int MateriaId { get; set; }
         public int UsuarioId { get; set; }
 

@@ -120,7 +120,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "TemaId,MateriaId,Nome")] Tema tema)
+        public async Task<ActionResult> Edit([Bind(Include = "TemaId,MateriaId,Nome,DataCriacao,UsuarioCriacao")] Tema tema)
         {
             if (ModelState.IsValid)
             {

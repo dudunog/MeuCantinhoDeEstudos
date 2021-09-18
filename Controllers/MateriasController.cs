@@ -111,7 +111,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "MateriaId,Nome,CorIdentificacao")] Materia materia)
+        public ActionResult Edit([Bind(Include = "MateriaId,Nome,CorIdentificacao,DataCriacao,UsuarioCriacao")] Materia materia)
         {
             if (ModelState.IsValid)
             {
@@ -120,15 +120,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 using (var scope = new TransactionScope())
                 {
                     db.Entry(materia).State = EntityState.Modified;
-
-                    //var camposModificados = db.ChangeTracker.Entries()
-                    //    .Where(e => e.State == EntityState.Modified)
-                    //    .Select(e => new {
-                    //        EntidadeModificada = e.GetType().Name,
-                    //        ValorAntigo = e.OriginalValues.PropertyNames.ToDictionary(pn => pn, pn => e.OriginalValues[pn]),
-                    //        ValorNovo = e.CurrentValues.PropertyNames.ToDictionary(pn => pn, pn => e.CurrentValues[pn]),
-                    //    });
-
                     db.SaveChanges();
 
                     scope.Complete();
