@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Validation;
 using System.Linq;
 using System.Web;
+using FastMember;
 using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace MeuCantinhoDeEstudos3.Models
@@ -22,7 +24,6 @@ namespace MeuCantinhoDeEstudos3.Models
         }
 
         public System.Data.Entity.DbSet<MeuCantinhoDeEstudos3.Models.Materia> Materias { get; set; }
-
         public System.Data.Entity.DbSet<MeuCantinhoDeEstudos3.Models.Tema> Temas { get; set; }
         public System.Data.Entity.DbSet<MeuCantinhoDeEstudos3.Models.MateriaAuditoria> MateriaAuditoria { get; set; }
         public System.Data.Entity.DbSet<MeuCantinhoDeEstudos3.Models.TemaAuditoria> TemaAuditoria { get; set; }
@@ -103,16 +104,16 @@ namespace MeuCantinhoDeEstudos3.Models
                 var tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[0].GenericTypeArguments[0];
                 var registroTabelaAuditoria = Activator.CreateInstance(tipoTabelaAuditoria);
 
-                // Isto aqui é lento, mas serve como exemplo. 
-                // Depois procure trocar por FastMember ou alguma outra estratégia de cópia.
-                foreach (var propriedade in entidade.Entity.GetType().GetProperties())
+                var classePrincipal = ObjectAccessor.Create(entidade.Entity);
+                var typer_classePrincipal = TypeAccessor.Create(entidade.Entity.GetType());
+                var classeAuditoria = ObjectAccessor.Create(registroTabelaAuditoria);
+
+                foreach (var member in typer_classePrincipal.GetMembers())
                 {
-                    registroTabelaAuditoria.GetType()
-                                           .GetProperty(propriedade.Name)
-                                           .SetValue(registroTabelaAuditoria, entidade.Entity.GetType().GetProperty(propriedade.Name).GetValue(entidade.Entity, null));
+                    classeAuditoria[member.Name] = classePrincipal[member.Name];
                 }
 
-                this.Set(registroTabelaAuditoria.GetType()).Add(registroTabelaAuditoria);
+                this.Set(registroTabelaAuditoria.GetType()).Add(classeAuditoria.Target);
             }
 
             return base.SaveChanges();
