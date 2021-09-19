@@ -71,10 +71,10 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             if (ModelState.IsValid)
             {
-                using (var scope = new TransactionScope())
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     db.Entry(tema).State = EntityState.Added;
-                    db.SaveChanges();
+                    await db.SaveChangesAsync();
 
                     scope.Complete();
                 }
@@ -124,10 +124,10 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             if (ModelState.IsValid)
             {
-                using (var scope = new TransactionScope())
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     db.Entry(tema).State = EntityState.Modified;
-                    db.SaveChanges();
+                    await db.SaveChangesAsync();
 
                     scope.Complete();
                 }
@@ -169,10 +169,10 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             Tema tema = await db.Temas.FindAsync(id);
 
-            using (var scope = new TransactionScope())
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 db.Entry(tema).State = EntityState.Deleted;
-                db.SaveChanges();
+                await db.SaveChangesAsync();
 
                 scope.Complete();
             }

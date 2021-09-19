@@ -68,14 +68,14 @@ namespace MeuCantinhoDeEstudos3.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "UsuarioId,Nome,CorIdentificacao")] Materia materia)
+        public async Task<ActionResult> Create([Bind(Include = "UsuarioId,Nome,CorIdentificacao")] Materia materia)
         {
             if (ModelState.IsValid)
             {
-                using (var scope = new TransactionScope())
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     db.Entry(materia).State = EntityState.Added;
-                    db.SaveChanges();
+                    await db.SaveChangesAsync();
 
                     scope.Complete();
                 }
@@ -111,16 +111,16 @@ namespace MeuCantinhoDeEstudos3.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "MateriaId,Nome,CorIdentificacao,DataCriacao,UsuarioCriacao")] Materia materia)
+        public async Task<ActionResult> Edit([Bind(Include = "MateriaId,Nome,CorIdentificacao,DataCriacao,UsuarioCriacao")] Materia materia)
         {
             if (ModelState.IsValid)
             {
                 materia.UsuarioId = User.Identity.GetUserId<int>();
 
-                using (var scope = new TransactionScope())
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     db.Entry(materia).State = EntityState.Modified;
-                    db.SaveChanges();
+                    await db.SaveChangesAsync();
 
                     scope.Complete();
                 }
@@ -158,10 +158,10 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             Materia materia = await db.Materias.FindAsync(id);
 
-            using (var scope = new TransactionScope())
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 db.Entry(materia).State = EntityState.Deleted;
-                db.SaveChanges();
+                await db.SaveChangesAsync();
 
                 scope.Complete();
             }
