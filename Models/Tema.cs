@@ -16,8 +16,11 @@ namespace MeuCantinhoDeEstudos3.Models
         public string Nome { get; set; }
 
         public virtual Materia Materia { get; set; }
+        [DisplayName("Criado em")]
         public DateTime DataCriacao { get; set; }
+        [DisplayName("Criado por")]
         public string UsuarioCriacao { get; set; }
+        [DisplayName("Modificado em")]
         public DateTime? UltimaModificacao { get; set; }
         public string UsuarioModificacao { get; set; }
     }
