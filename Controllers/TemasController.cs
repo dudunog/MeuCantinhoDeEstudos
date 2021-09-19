@@ -11,6 +11,7 @@ using System.Transactions;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
+    [Authorize]
     public class TemasController : Controller
     {
         private MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();

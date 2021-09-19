@@ -54,7 +54,7 @@ namespace MeuCantinhoDeEstudos3.Models
             {
                 var currentTime = DateTime.Now;
                 foreach (var entry in ChangeTracker.Entries().Where(e => e.Entity != null &&
-                IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade<>))))
+                    IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade<>))))
                 {
                     if (entry.State == EntityState.Added)
                     {
@@ -100,7 +100,8 @@ namespace MeuCantinhoDeEstudos3.Models
                 throw new DbEntityValidationException(exceptionsMessage, ex.EntityValidationErrors);
             }
 
-            foreach (var entidade in ChangeTracker.Entries())
+            foreach (var entidade in ChangeTracker.Entries().Where(e => e.Entity != null &&
+                IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade<>))))
             {
                 var tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[0].GenericTypeArguments[0];
                 var registroTabelaAuditoria = Activator.CreateInstance(tipoTabelaAuditoria);
@@ -111,6 +112,7 @@ namespace MeuCantinhoDeEstudos3.Models
 
                 foreach (var member in typer_classePrincipal.GetMembers())
                 {
+                    Console.WriteLine(classePrincipal[member.Name]);
                     classeAuditoria[member.Name] = classePrincipal[member.Name];
                 }
 
@@ -126,7 +128,7 @@ namespace MeuCantinhoDeEstudos3.Models
             {
                 var currentTime = DateTime.Now;
                 foreach (var entry in ChangeTracker.Entries().Where(e => e.Entity != null &&
-                IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade<>))))
+                    IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade<>))))
                 {
                     if (entry.State == EntityState.Added)
                     {

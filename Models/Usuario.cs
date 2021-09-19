@@ -20,7 +20,6 @@ namespace MeuCantinhoDeEstudos3.Models
         }
 
         public override int Id { get; set; }
-
         [Display(Name = "Endereço de E-mail")]
         public override string Email { get; set; }
         [Display(Name = "E-mail Confirmado?")]
@@ -41,10 +40,12 @@ namespace MeuCantinhoDeEstudos3.Models
         public override bool LockoutEnabled { get; set; }
         [Display(Name = "Contagem de Falhas de Acesso")]
         public override int AccessFailedCount { get; set; }
-
         [Display(Name = "Login")]
         public override string UserName { get; set; }
-
         public virtual ICollection<Materia> Materias { get; set; }
+        public DateTime DataCriacao { get; set; }
+        public string UsuarioCriacao { get; set; }
+        public DateTime? UltimaModificacao { get; set; }
+        public string UsuarioModificacao { get; set; }
     }
 }
