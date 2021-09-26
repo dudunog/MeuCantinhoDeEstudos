@@ -1,0 +1,90 @@
+﻿@model MeuCantinhoDeEstudos3.Models.BateriaExercicio
+
+@{
+    ViewBag.Title = "Detalhes";
+}
+
+<h2>Detalhes</h2>
+
+<h4>Exercício</h4>
+
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Descricao)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Descricao)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Materia.Nome)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Materia.Nome)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Tema.Nome)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Tema.Nome)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.QuantidadeExercicios)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.QuantidadeExercicios)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.QuantidadeAcertos)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.QuantidadeAcertos)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Aproveitamento)
+        </dt>
+
+        <dd>
+            @Model.Aproveitamento.ToString("N2")%
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DataCriacao)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DataCriacao)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.UsuarioCriacao)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.UsuarioCriacao)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.UltimaModificacao)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.UltimaModificacao)
+        </dd>
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Editar", "Edit", new { id = Model.AtividadeId }) |
+    @Html.ActionLink("Voltar", "Index")
+</p>

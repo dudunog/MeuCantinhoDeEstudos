@@ -12,7 +12,9 @@ namespace MeuCantinhoDeEstudos3.Models
     {
         [Key]
         public int Id { get; set; }
+
         public int TemaId { get; set; }
+
         public int MateriaId { get; set; }
 
         [Required]
@@ -20,10 +22,17 @@ namespace MeuCantinhoDeEstudos3.Models
         [DisplayName("Tema")]
         public string Nome { get; set; }
 
+        [ForeignKey(nameof(MateriaId))]
         public virtual Materia Materia { get; set; }
+
+        public virtual ICollection<Atividade> Atividades { get; set; }
+
         public DateTime DataCriacao { get; set; }
+
         public string UsuarioCriacao { get; set; }
+
         public DateTime? UltimaModificacao { get; set; }
+
         public String UsuarioModificacao { get; set; }
     }
 }

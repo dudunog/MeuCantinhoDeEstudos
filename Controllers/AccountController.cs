@@ -7,6 +7,8 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using MeuCantinhoDeEstudos3.Models;
 using MeuCantinhoDeEstudos3.ViewModels;
+using System.Transactions;
+using System.Data.Entity;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
@@ -15,6 +17,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
     {
         private GerenciadorLogin _signInManager;
         private GerenciadorUsuarios _userManager;
+        private MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
 
         public AccountController()
         {

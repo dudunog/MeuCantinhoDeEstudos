@@ -1,0 +1,76 @@
+﻿@model MeuCantinhoDeEstudos3.Models.Atividade
+
+@{
+    ViewBag.Title = "Adicionar";
+}
+
+<h2>Adicionar</h2>
+
+<h4>Atividade</h4>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Materia.MateriaId, "Matéria", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("MateriaId", null, "Selecione", htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Materia.MateriaId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Tema.TemaId, "Tema", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("TemaId", null, "Selecione", htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Tema.TemaId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Descricao, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextAreaFor(model => model.Descricao, new { @class = "form-control col-md-4", @placeholder = "Descreva o seu estudo para orientar suas revisões. (Ex: Livro Constitucional - pg. 57-69)", @rows = 4, @cols = 4 })
+                @Html.ValidationMessageFor(model => model.Descricao, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Salvar" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("Voltar", "Index")
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+        $("#MateriaId").change(function () {
+            var optionValue = $(this).find(":selected").val();
+
+            if ($.isNumeric(optionValue)) {
+                $.ajax({
+                    url: "/BateriasExercicios/SelecionarPorMateria/" + optionValue,
+                    success: function (data) {
+                        $("#TemaId").empty();
+                        $("#TemaId").append('<option value>Selecione</option>');
+                        $.each(data, function (index, element) {
+                            $("#TemaId").append('<option value="' + element.TemaId + '">' + element.Nome + '</option>');
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+}

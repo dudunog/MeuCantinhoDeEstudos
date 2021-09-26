@@ -1,4 +1,4 @@
-﻿@model MeuCantinhoDeEstudos3.Models.Materia
+﻿@model MeuCantinhoDeEstudos3.Models.VideoAula
 
 @{
     ViewBag.Title = "Excluir";
@@ -6,50 +6,43 @@
 
 <h2>Excluir</h2>
 
-<h4>Matéria</h4>
+<h4>VideoAula</h4>
 
 <h3>Tem certeza que deseja excluir?</h3>
-
-@if (Model.Temas.Count > 0)
-{
-    <div class="alert-warning">
-        Ao excluir esta matéria, o(s) seguinte(s) tema(s) também será(ão) excluído(s):
-        <ul>
-            @foreach (var tema in Model.Temas)
-            {
-                <li>@tema.Nome</li>
-            }
-        </ul>
-    </div>
-}
-
 <div>
     <hr />
     <dl class="dl-horizontal">
         <dt>
-            @Html.DisplayNameFor(model => model.Nome)
+            @Html.DisplayNameFor(model => model.Descricao)
         </dt>
 
         <dd>
-            @Html.DisplayFor(model => model.Nome)
+            @Html.DisplayFor(model => model.Descricao)
         </dd>
 
         <dt>
-            @Html.DisplayNameFor(model => model.CorIdentificacao)
+            @Html.DisplayNameFor(model => model.Materia.Nome)
         </dt>
 
         <dd>
-            @Html.DisplayFor(model => model.CorIdentificacao)
+            @Html.DisplayFor(model => model.Materia.Nome)
         </dd>
 
         <dt>
-            @Html.DisplayNameFor(model => model.Temas)
+            @Html.DisplayNameFor(model => model.Tema.Nome)
         </dt>
 
-        @foreach (var tema in Model.Temas)
-        {
-            <dd>@Html.DisplayFor(modelItem => tema.Nome)</dd>
-        }
+        <dd>
+            @Html.DisplayFor(model => model.Tema.Nome);
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.LinkVideo)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.LinkVideo)
+        </dd>
 
         <dt>
             @Html.DisplayNameFor(model => model.DataCriacao)

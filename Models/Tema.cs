@@ -1,13 +1,17 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MeuCantinhoDeEstudos3.Models
 {
-    public class Tema : IEntidade<TemaAuditoria>
+    public class Tema : IEntidadeAuditada<TemaAuditoria>
     {
         [Key]
         public int TemaId { get; set; }
+
         public int MateriaId { get; set; }
 
         [Required]
@@ -15,13 +19,20 @@ namespace MeuCantinhoDeEstudos3.Models
         [DisplayName("Tema")]
         public string Nome { get; set; }
 
+        [ForeignKey(nameof(MateriaId))]
         public virtual Materia Materia { get; set; }
+
+        public virtual ICollection<Atividade> Atividades { get; set; }
+
         [DisplayName("Criado em")]
         public DateTime DataCriacao { get; set; }
+
         [DisplayName("Criado por")]
         public string UsuarioCriacao { get; set; }
+
         [DisplayName("Modificado em")]
         public DateTime? UltimaModificacao { get; set; }
+
         public string UsuarioModificacao { get; set; }
     }
 }

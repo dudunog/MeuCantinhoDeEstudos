@@ -1,11 +1,12 @@
 namespace MeuCantinhoDeEstudos3.Migrations
 {
+    using MeuCantinhoDeEstudos3.Models;
     using System;
     using System.Data.Entity;
     using System.Data.Entity.Migrations;
     using System.Linq;
 
-    internal sealed class Configuration : DbMigrationsConfiguration<MeuCantinhoDeEstudos3.Models.MeuCantinhoDeEstudosContext>
+    internal sealed class Configuration : DbMigrationsConfiguration<MeuCantinhoDeEstudosContext>
     {
         public Configuration()
         {
@@ -13,7 +14,7 @@ namespace MeuCantinhoDeEstudos3.Migrations
             AutomaticMigrationDataLossAllowed = true;
         }
 
-        protected override void Seed(MeuCantinhoDeEstudos3.Models.MeuCantinhoDeEstudosContext context)
+        protected override void Seed(MeuCantinhoDeEstudosContext context)
         {
             //  This method will be called after migrating to the latest version.
 

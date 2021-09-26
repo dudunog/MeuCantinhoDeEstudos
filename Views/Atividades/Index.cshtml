@@ -1,0 +1,34 @@
+﻿@model IEnumerable<MeuCantinhoDeEstudos3.Models.Atividade>
+
+@{
+    ViewBag.Title = "Atividades";
+}
+
+<h2>Atividades</h2>
+
+<p>
+    @Html.ActionLink("Adicionar atividade", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Descricao)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Descricao)
+            </td>
+            <td>
+                @Html.ActionLink("Editar", "Edit", new { id = item.AtividadeId }) |
+                @Html.ActionLink("Detalhes", "Details", new { id = item.AtividadeId }) |
+                @Html.ActionLink("Excluir", "Delete", new { id = item.AtividadeId })
+            </td>
+        </tr>
+    }
+
+</table>

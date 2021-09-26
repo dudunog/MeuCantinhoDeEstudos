@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using MeuCantinhoDeEstudos3.Models.Interfaces;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace MeuCantinhoDeEstudos3.Models
 {
     // You can add profile data for the user by adding more properties to your ApplicationUser class, please visit https://go.microsoft.com/fwlink/?LinkID=317594 to learn more.
-    public class Usuario : IdentityUser<int, UsuarioLogin, UsuarioGrupo, UsuarioIdentificacao>
+    public class Usuario : IdentityUser<int, UsuarioLogin, UsuarioGrupo, UsuarioIdentificacao>, IEntidade
     {
         public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<Usuario, int> manager)
         {
@@ -42,6 +43,7 @@ namespace MeuCantinhoDeEstudos3.Models
         public override int AccessFailedCount { get; set; }
         [Display(Name = "Login")]
         public override string UserName { get; set; }
+        public virtual UsuarioInformacoes UsuarioInformacoes { get; set; }
         public virtual ICollection<Materia> Materias { get; set; }
         public DateTime DataCriacao { get; set; }
         public string UsuarioCriacao { get; set; }

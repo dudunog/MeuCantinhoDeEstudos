@@ -7,11 +7,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using FastMember;
+using Microsoft.AspNet.Identity;
+using MeuCantinhoDeEstudos3.Models.Interfaces;
 using Microsoft.AspNet.Identity.EntityFramework;
+using Z.BulkOperations;
 
 namespace MeuCantinhoDeEstudos3.Models
 {
-
     public class MeuCantinhoDeEstudosContext : IdentityDbContext<Usuario, Grupo, int, UsuarioLogin, UsuarioGrupo, UsuarioIdentificacao>
     {
         public MeuCantinhoDeEstudosContext()
@@ -24,10 +26,16 @@ namespace MeuCantinhoDeEstudos3.Models
             return new MeuCantinhoDeEstudosContext();
         }
 
-        public System.Data.Entity.DbSet<MeuCantinhoDeEstudos3.Models.Materia> Materias { get; set; }
-        public System.Data.Entity.DbSet<MeuCantinhoDeEstudos3.Models.Tema> Temas { get; set; }
-        public System.Data.Entity.DbSet<MeuCantinhoDeEstudos3.Models.MateriaAuditoria> MateriaAuditoria { get; set; }
-        public System.Data.Entity.DbSet<MeuCantinhoDeEstudos3.Models.TemaAuditoria> TemaAuditoria { get; set; }
+        public DbSet<Materia> Materias { get; set; }
+        public DbSet<MateriaAuditoria> MateriaAuditoria { get; set; }
+        public DbSet<Tema> Temas { get; set; }
+        public DbSet<TemaAuditoria> TemaAuditoria { get; set; }
+        public DbSet<Atividade> Atividades { get; set; }
+        public DbSet<BateriaExercicio> BateriasExercicios { get; set; }
+        public DbSet<VideoAula> VideoAulas { get; set; }
+        public DbSet<UsuarioInformacoes> UsuarioInformacoes { get; set; }
+        public DbSet<UsuarioLog> UsuarioLogs { get; set; }
+        public DbSet<UsuarioLogValue> UsuarioLogValues { get; set; }
 
         public static bool IsAssignableToGenericType(Type givenType, Type genericType)
         {
@@ -52,37 +60,11 @@ namespace MeuCantinhoDeEstudos3.Models
         {
             try
             {
-                var currentTime = DateTime.Now;
                 foreach (var entry in ChangeTracker.Entries().Where(e => e.Entity != null &&
-                    IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade<>))))
+                    // IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade<>))))
+                    typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
                 {
-                    if (entry.State == EntityState.Added)
-                    {
-
-                        if (entry.Property("DataCriacao") != null)
-                        {
-                            entry.Property("DataCriacao").CurrentValue = currentTime;
-                        }
-                        if (entry.Property("UsuarioCriacao") != null)
-                        {
-                            entry.Property("UsuarioCriacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
-                        }
-                    }
-
-                    if (entry.State == EntityState.Modified)
-                    {
-                        entry.Property("DataCriacao").IsModified = false;
-                        entry.Property("UsuarioCriacao").IsModified = false;
-
-                        if (entry.Property("UltimaModificacao") != null)
-                        {
-                            entry.Property("UltimaModificacao").CurrentValue = currentTime;
-                        }
-                        if (entry.Property("UsuarioModificacao") != null)
-                        {
-                            entry.Property("UsuarioModificacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
-                        }
-                    }
+                    ApplyCreationAndModification(entry);
                 }
 
                 base.SaveChanges();
@@ -101,7 +83,8 @@ namespace MeuCantinhoDeEstudos3.Models
             }
 
             foreach (var entidade in ChangeTracker.Entries().Where(e => e.Entity != null &&
-                IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade<>))))
+                    IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidadeAuditada<>))))
+                    // typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
             {
                 var tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[0].GenericTypeArguments[0];
                 var registroTabelaAuditoria = Activator.CreateInstance(tipoTabelaAuditoria);
@@ -112,7 +95,6 @@ namespace MeuCantinhoDeEstudos3.Models
 
                 foreach (var member in typer_classePrincipal.GetMembers())
                 {
-                    Console.WriteLine(classePrincipal[member.Name]);
                     classeAuditoria[member.Name] = classePrincipal[member.Name];
                 }
 
@@ -128,35 +110,10 @@ namespace MeuCantinhoDeEstudos3.Models
             {
                 var currentTime = DateTime.Now;
                 foreach (var entry in ChangeTracker.Entries().Where(e => e.Entity != null &&
-                    IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade<>))))
+                    //IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade))))
+                    typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
                 {
-                    if (entry.State == EntityState.Added)
-                    {
-
-                        if (entry.Property("DataCriacao") != null)
-                        {
-                            entry.Property("DataCriacao").CurrentValue = currentTime;
-                        }
-                        if (entry.Property("UsuarioCriacao") != null)
-                        {
-                            entry.Property("UsuarioCriacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
-                        }
-                    }
-
-                    if (entry.State == EntityState.Modified)
-                    {
-                        entry.Property("DataCriacao").IsModified = false;
-                        entry.Property("UsuarioCriacao").IsModified = false;
-
-                        if (entry.Property("UltimaModificacao") != null)
-                        {
-                            entry.Property("UltimaModificacao").CurrentValue = currentTime;
-                        }
-                        if (entry.Property("UsuarioModificacao") != null)
-                        {
-                            entry.Property("UsuarioModificacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
-                        }
-                    }
+                    ApplyCreationAndModification(entry);
                 }
 
                 await base.SaveChangesAsync();
@@ -174,7 +131,9 @@ namespace MeuCantinhoDeEstudos3.Models
                 throw new DbEntityValidationException(exceptionsMessage, ex.EntityValidationErrors);
             }
 
-            foreach (var entidade in ChangeTracker.Entries())
+            foreach (var entidade in ChangeTracker.Entries().Where(e => e.Entity != null &&
+                    IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidadeAuditada<>))))
+                    // typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
             {
                 var tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[0].GenericTypeArguments[0];
                 var registroTabelaAuditoria = Activator.CreateInstance(tipoTabelaAuditoria);
@@ -193,5 +152,51 @@ namespace MeuCantinhoDeEstudos3.Models
 
             return await base.SaveChangesAsync();
         }
+
+        private static void ApplyCreationAndModification(DbEntityEntry entry)
+        {
+            var currentTime = DateTime.Now;
+
+            if (entry.State == EntityState.Added)
+            {
+
+                if (entry.Property("DataCriacao") != null)
+                {
+                    entry.Property("DataCriacao").CurrentValue = currentTime;
+                }
+                if (entry.Property("UsuarioCriacao") != null)
+                {
+                    entry.Property("UsuarioCriacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
+                }
+            }
+
+            if (entry.State == EntityState.Modified)
+            {
+                entry.Property("DataCriacao").IsModified = false;
+                entry.Property("UsuarioCriacao").IsModified = false;
+
+                if (entry.Property("UltimaModificacao") != null)
+                {
+                    entry.Property("UltimaModificacao").CurrentValue = currentTime;
+                }
+                if (entry.Property("UsuarioModificacao") != null)
+                {
+                    entry.Property("UsuarioModificacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
+                }
+            }
+        }
+
+        //protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        //{
+        //    modelBuilder.Entity<Atividade>()
+        //        .HasOptional(c => c.Materia)
+        //        .WithMany()
+        //        .WillCascadeOnDelete(false);
+
+        //    modelBuilder.Entity<Atividade>()
+        //        .HasOptional(c => c.Tema)
+        //        .WithMany()
+        //        .WillCascadeOnDelete(false);
+        //}
     }
 }

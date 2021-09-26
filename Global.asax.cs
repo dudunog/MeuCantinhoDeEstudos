@@ -1,4 +1,6 @@
-﻿using StackExchange.Profiling;
+﻿using EntityFramework.Audit;
+using MeuCantinhoDeEstudos3.Models;
+using StackExchange.Profiling;
 using StackExchange.Profiling.EntityFramework6;
 using System;
 using System.Collections.Generic;
@@ -27,6 +29,18 @@ namespace MeuCantinhoDeEstudos3
                 RouteBasePath = "~/profiler",
                 ColorScheme = ColorScheme.Dark
             });
+
+            var auditConfiguration = AuditConfiguration.Default;
+
+            auditConfiguration.IncludeRelationships = true;
+            auditConfiguration.LoadRelationships = true;
+            auditConfiguration.DefaultAuditable = true;
+
+            auditConfiguration.IsAuditable<Usuario>();
+
+            auditConfiguration.IsAuditable<Usuario>()
+                .DisplayMember(t => t.UsuarioCriacao);
+
         }
 
         protected void Application_BeginRequest()

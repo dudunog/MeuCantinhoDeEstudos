@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace MeuCantinhoDeEstudos3.Models
+namespace MeuCantinhoDeEstudos3.Models.Interfaces
 {
-    public interface IEntidade<TClasseAuditada> where TClasseAuditada : class
+    public interface IEntidade
     {
         DateTime DataCriacao { get; set; }
         String UsuarioCriacao { get; set; }

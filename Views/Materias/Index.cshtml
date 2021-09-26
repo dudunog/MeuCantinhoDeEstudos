@@ -36,20 +36,20 @@
         <th></th>
     </tr>
 
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Nome)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CorIdentificacao)
-        </td>
-        <td>
-            @Html.ActionLink("Editar", "Edit", new { id=item.MateriaId }) |
-            @Html.ActionLink("Detalhes", "Details", new { id=item.MateriaId }) |
-            @Html.ActionLink("Excluir", "Delete", new { id=item.MateriaId })
-        </td>
-    </tr>
-}
+    @foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Nome)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CorIdentificacao)
+            </td>
+            <td>
+                @Html.ActionLink("Editar", "Edit", new { id=item.MateriaId }) |
+                @Html.ActionLink("Detalhes", "Details", new { id=item.MateriaId }) |
+                @Html.ActionLink("Excluir", "Delete", new { id=item.MateriaId })
+            </td>
+        </tr>
+    }
 
 </table>

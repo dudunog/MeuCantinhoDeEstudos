@@ -23,8 +23,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
             ViewBag.CurrentSearch = search;
 
             var materias = db.Materias
-                           .Where(m => m.UsuarioId == userId)
-                           .Include(m => m.Usuario);
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
 
             if (!string.IsNullOrEmpty(search))
             {
@@ -70,6 +70,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             if (ModelState.IsValid)
             {
+                materia.UsuarioId = User.Identity.GetUserId<int>();
+
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     db.Entry(materia).State = EntityState.Added;
@@ -77,7 +79,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
                     scope.Complete();
                 }
-                
+
                 return RedirectToAction("Index");
             }
 
@@ -100,7 +102,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 return HttpNotFound();
             }
-            
+
             return View(materia);
         }
 
@@ -123,7 +125,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
                 return RedirectToAction("Index");
             }
-            
+
             return View(materia);
         }
 

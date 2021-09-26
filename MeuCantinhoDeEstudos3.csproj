@@ -49,11 +49,17 @@
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
+    <Reference Include="EntityFramework.Extended, Version=6.0.0.0, Culture=neutral, PublicKeyToken=05b7e29bdd433584, processorArchitecture=MSIL">
+      <HintPath>packages\EntityFramework.Extended.6.1.0.168\lib\net45\EntityFramework.Extended.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="FastMember, Version=1.5.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\FastMember.1.5.0\lib\net461\FastMember.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.Identity.EntityFramework, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.Identity.EntityFramework.2.2.3\lib\net45\Microsoft.AspNet.Identity.EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=3.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
@@ -142,6 +148,9 @@
       <Private>True</Private>
       <HintPath>packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="Z.EntityFramework.Extensions, Version=5.2.13.0, Culture=neutral, PublicKeyToken=59b66d028979105b, processorArchitecture=MSIL">
+      <HintPath>packages\Z.EntityFramework.Extensions.5.2.13\lib\net45\Z.EntityFramework.Extensions.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json">
@@ -161,9 +170,6 @@
     </Reference>
     <Reference Include="Microsoft.AspNet.Identity.Owin">
       <HintPath>packages\Microsoft.AspNet.Identity.Owin.2.2.3\lib\net45\Microsoft.AspNet.Identity.Owin.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.AspNet.Identity.EntityFramework">
-      <HintPath>packages\Microsoft.AspNet.Identity.EntityFramework.2.2.3\lib\net45\Microsoft.AspNet.Identity.EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="Owin">
       <HintPath>packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
@@ -206,23 +212,37 @@
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\AtividadesController.cs" />
+    <Compile Include="Controllers\BateriasExerciciosController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
     <Compile Include="Controllers\MateriasController.cs" />
     <Compile Include="Controllers\TemasController.cs" />
+    <Compile Include="Controllers\UsuarioInformacoesController.cs" />
+    <Compile Include="Controllers\VideoAulasController.cs" />
+    <Compile Include="Extensions\Controller.cs" />
+    <Compile Include="Extensions\CustomJsonResult.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Models\Atividade.cs" />
+    <Compile Include="Models\BateriaExercicio.cs" />
+    <Compile Include="Models\Entidade.cs" />
     <Compile Include="Models\Grupo.cs" />
-    <Compile Include="Models\IEntidade.cs" />
+    <Compile Include="Models\Interfaces\IEntidade.cs" />
+    <Compile Include="Models\Interfaces\IEntidadeAuditada.cs" />
     <Compile Include="Models\Materia.cs" />
     <Compile Include="Models\MateriaAuditoria.cs" />
     <Compile Include="Models\Tema.cs" />
     <Compile Include="Models\TemaAuditoria.cs" />
+    <Compile Include="Models\UsuarioInformacoes.cs" />
     <Compile Include="Models\UsuarioGrupo.cs" />
     <Compile Include="Models\UsuarioIdentificacao.cs" />
+    <Compile Include="Models\UsuarioLog.cs" />
     <Compile Include="Models\UsuarioLogin.cs" />
+    <Compile Include="Models\UsuarioLogValue.cs" />
+    <Compile Include="Models\VideoAula.cs" />
     <Compile Include="ViewModels\AccountViewModels.cs" />
     <Compile Include="Models\Usuario.cs" />
     <Compile Include="Models\MeuCantinhoDeEstudosContext.cs" />
@@ -296,8 +316,24 @@
     <Content Include="Views\Temas\Details.cshtml" />
     <Content Include="Views\Temas\Edit.cshtml" />
     <Content Include="Views\Temas\Index.cshtml" />
+    <Content Include="Views\Atividades\Create.cshtml" />
+    <Content Include="Views\Atividades\Delete.cshtml" />
+    <Content Include="Views\Atividades\Details.cshtml" />
+    <Content Include="Views\Atividades\Edit.cshtml" />
+    <Content Include="Views\Atividades\Index.cshtml" />
+    <Content Include="Views\BateriasExercicios\Create.cshtml" />
+    <Content Include="Views\BateriasExercicios\Delete.cshtml" />
+    <Content Include="Views\BateriasExercicios\Details.cshtml" />
+    <Content Include="Views\BateriasExercicios\Edit.cshtml" />
+    <Content Include="Views\BateriasExercicios\Index.cshtml" />
+    <Content Include="Views\VideoAulas\Create.cshtml" />
+    <Content Include="Views\VideoAulas\Delete.cshtml" />
+    <Content Include="Views\VideoAulas\Details.cshtml" />
+    <Content Include="Views\VideoAulas\Edit.cshtml" />
+    <Content Include="Views\VideoAulas\Index.cshtml" />
+    <Content Include="Views\UsuarioInformacoes\Edit.cshtml" />
+    <Content Include="Views\UsuarioInformacoes\Create.cshtml" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
@@ -343,12 +379,12 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
+    <Error Condition="!Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets'))" />
     <Error Condition="!Exists('packages\EntityFramework.6.4.4\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.4.4\build\EntityFramework.props'))" />
     <Error Condition="!Exists('packages\EntityFramework.6.4.4\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.4.4\build\EntityFramework.targets'))" />
-    <Error Condition="!Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets'))" />
   </Target>
-  <Import Project="packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
   <Import Project="packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
+  <Import Project="packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

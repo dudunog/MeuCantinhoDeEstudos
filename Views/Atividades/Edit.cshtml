@@ -1,0 +1,98 @@
+﻿@model MeuCantinhoDeEstudos3.Models.Atividade
+
+@{
+    ViewBag.Title = "Editar";
+}
+
+<h2>Editar</h2>
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4>Atividade</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.AtividadeId)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Materia.MateriaId, "Matéria", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("MateriaId", null, htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Materia.MateriaId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.TemaId, "Tema", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("TemaId", null, htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.TemaId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Descricao, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextAreaFor(model => model.Descricao, new { @class = "form-control col-md-4", @placeholder = "Descreva o seu estudo para orientar suas revisões. (Ex: Livro Constitucional - pg. 57-69)", @rows = 4, @cols = 4 })
+                @Html.ValidationMessageFor(model => model.Descricao, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.DataCriacao, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(model => model.DataCriacao, new { @class = "form-control", disabled = "disabled" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.UsuarioCriacao, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(model => model.UsuarioCriacao, new { @class = "form-control", disabled = "disabled" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.UltimaModificacao, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(model => model.UltimaModificacao, new { @class = "form-control", disabled = "disabled" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Salvar" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("Voltar", "Index")
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+        $("#MateriaId").change(function () {
+            var optionValue = $(this).find(":selected").val();
+
+            if ($.isNumeric(optionValue)) {
+                $.ajax({
+                    url: "/BateriasExercicios/SelecionarPorMateria/" + optionValue,
+                    success: function (data) {
+                        $("#TemaId").empty();
+                        $("#TemaId").append('<option value>Selecione</option>');
+                        $.each(data, function (index, element) {
+                            $("#TemaId").append('<option value="' + element.TemaId + '">' + element.Nome + '</option>');
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+}

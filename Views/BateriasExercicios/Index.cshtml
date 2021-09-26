@@ -1,0 +1,63 @@
+﻿@model IEnumerable<MeuCantinhoDeEstudos3.Models.BateriaExercicio>
+
+@{
+    ViewBag.Title = "Exercícios";
+}
+
+<h2>Exercícios</h2>
+
+<p>
+    @Html.ActionLink("Adicionar exercício", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Descricao)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Materia.Nome)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Tema.Nome)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.QuantidadeExercicios)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.QuantidadeAcertos)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Aproveitamento)
+        </th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Descricao)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Materia.Nome)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tema.Nome)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.QuantidadeExercicios)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.QuantidadeAcertos)
+            </td>
+            <td>
+                @item.Aproveitamento.ToString("N2")%
+            </td>
+            <td>
+                @Html.ActionLink("Editar", "Edit", new { id = item.AtividadeId }) |
+                @Html.ActionLink("Detalhes", "Details", new { id = item.AtividadeId }) |
+                @Html.ActionLink("Excluir", "Delete", new { id = item.AtividadeId })
+            </td>
+        </tr>
+    }
+
+</table>
