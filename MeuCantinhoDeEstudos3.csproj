@@ -55,6 +55,9 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="EntityFramework.Triggers, Version=6.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\EntityFramework.Triggers.6.2.3\lib\net461\EntityFramework.Triggers.dll</HintPath>
+    </Reference>
     <Reference Include="FastMember, Version=1.5.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\FastMember.1.5.0\lib\net461\FastMember.dll</HintPath>
     </Reference>
@@ -65,8 +68,8 @@
       <HintPath>packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.DependencyInjection.Abstractions.2.0.0\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=2.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Extensions.DependencyInjection.Abstractions.2.1.1\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="MiniProfiler, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b44f9351044011a3, processorArchitecture=MSIL">
       <HintPath>packages\MiniProfiler.4.2.22\lib\net461\MiniProfiler.dll</HintPath>
@@ -81,6 +84,9 @@
       <HintPath>packages\MiniProfiler.Shared.4.2.22\lib\net461\MiniProfiler.Shared.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.2.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Collections.Immutable.1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
+    </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Diagnostics.DiagnosticSource, Version=4.0.2.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -228,20 +234,22 @@
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Atividade.cs" />
     <Compile Include="Models\BateriaExercicio.cs" />
+    <Compile Include="Models\ClassesDeLog\UsuarioLog.cs" />
+    <Compile Include="Models\ClassesDeLog\UsuarioLogValores.cs" />
     <Compile Include="Models\Entidade.cs" />
     <Compile Include="Models\Grupo.cs" />
     <Compile Include="Models\Interfaces\IEntidade.cs" />
     <Compile Include="Models\Interfaces\IEntidadeAuditada.cs" />
     <Compile Include="Models\Materia.cs" />
-    <Compile Include="Models\MateriaAuditoria.cs" />
+    <Compile Include="Models\Auditoria\MateriaAuditoria.cs" />
     <Compile Include="Models\Tema.cs" />
-    <Compile Include="Models\TemaAuditoria.cs" />
+    <Compile Include="Models\Auditoria\TemaAuditoria.cs" />
     <Compile Include="Models\UsuarioInformacoes.cs" />
     <Compile Include="Models\UsuarioGrupo.cs" />
     <Compile Include="Models\UsuarioIdentificacao.cs" />
-    <Compile Include="Models\UsuarioLog.cs" />
+    <Compile Include="Models\ClassesDeLog\UsuarioInformacoesLog.cs" />
     <Compile Include="Models\UsuarioLogin.cs" />
-    <Compile Include="Models\UsuarioLogValue.cs" />
+    <Compile Include="Models\ClassesDeLog\UsuarioInformacoesLogValores.cs" />
     <Compile Include="Models\VideoAula.cs" />
     <Compile Include="ViewModels\AccountViewModels.cs" />
     <Compile Include="Models\Usuario.cs" />

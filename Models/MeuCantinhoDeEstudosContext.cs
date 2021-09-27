@@ -11,6 +11,11 @@ using Microsoft.AspNet.Identity;
 using MeuCantinhoDeEstudos3.Models.Interfaces;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Z.BulkOperations;
+using MeuCantinhoDeEstudos3.Models.ClassesDeLog;
+using EntityFramework.Extensions;
+using EntityFramework.Audit;
+using EntityFramework.Triggers;
+using System.Security.Claims;
 
 namespace MeuCantinhoDeEstudos3.Models
 {
@@ -34,8 +39,10 @@ namespace MeuCantinhoDeEstudos3.Models
         public DbSet<BateriaExercicio> BateriasExercicios { get; set; }
         public DbSet<VideoAula> VideoAulas { get; set; }
         public DbSet<UsuarioInformacoes> UsuarioInformacoes { get; set; }
+        public DbSet<UsuarioInformacoesLog> UsuarioInformacoesLogs { get; set; }
+        public DbSet<UsuarioInformacoesLogValores> UsuarioInformacoesLogValores { get; set; }
         public DbSet<UsuarioLog> UsuarioLogs { get; set; }
-        public DbSet<UsuarioLogValue> UsuarioLogValues { get; set; }
+        public DbSet<UsuarioLogValores> UsuarioLogValores { get; set; }
 
         public static bool IsAssignableToGenericType(Type givenType, Type genericType)
         {
@@ -64,10 +71,14 @@ namespace MeuCantinhoDeEstudos3.Models
                     // IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade<>))))
                     typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
                 {
-                    ApplyCreationAndModification(entry);
+                    ApplyCreationAndModificationProperts(entry);
                 }
 
-                base.SaveChanges();
+                var audit = this.BeginAudit();
+
+                this.SaveChangesWithTriggers(base.SaveChanges);
+
+                ApplyAuditInUsuarioEntity(ChangeTracker, audit);
             }
             catch (DbEntityValidationException ex)
             {
@@ -101,7 +112,7 @@ namespace MeuCantinhoDeEstudos3.Models
                 this.Set(registroTabelaAuditoria.GetType()).Add(classeAuditoria.Target);
             }
 
-            return base.SaveChanges();
+            return this.SaveChangesWithTriggers(base.SaveChanges);
         }
 
         public override async Task<int> SaveChangesAsync()
@@ -113,10 +124,14 @@ namespace MeuCantinhoDeEstudos3.Models
                     //IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade))))
                     typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
                 {
-                    ApplyCreationAndModification(entry);
+                    ApplyCreationAndModificationProperts(entry);
                 }
 
-                await base.SaveChangesAsync();
+                var audit = this.BeginAudit();
+
+                await this.SaveChangesWithTriggersAsync(base.SaveChangesAsync);
+
+                ApplyAuditInUsuarioEntity(ChangeTracker, audit);
             }
             catch (DbEntityValidationException ex)
             {
@@ -150,10 +165,10 @@ namespace MeuCantinhoDeEstudos3.Models
                 this.Set(registroTabelaAuditoria.GetType()).Add(classeAuditoria.Target);
             }
 
-            return await base.SaveChangesAsync();
+            return await this.SaveChangesWithTriggersAsync(base.SaveChangesAsync);
         }
 
-        private static void ApplyCreationAndModification(DbEntityEntry entry)
+        private static void ApplyCreationAndModificationProperts(DbEntityEntry entry)
         {
             var currentTime = DateTime.Now;
 
@@ -184,6 +199,54 @@ namespace MeuCantinhoDeEstudos3.Models
                     entry.Property("UsuarioModificacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
                 }
             }
+        }
+
+        public static async void ApplyAuditInUsuarioEntity(DbChangeTracker changeTracker, AuditLogger audit)
+        {
+            MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
+            List<UsuarioLogValores> auditLogsValores = new List<UsuarioLogValores>();
+
+            foreach (var entry in changeTracker.Entries().Where(e => e.Entity != null &&
+                    typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
+            {
+                if (entry.Entity.GetType().ToString().Contains("Usuario"))
+                {
+                    var log = audit.LastLog;
+
+                    foreach (var auditEntry in log.Entities)
+                    {
+                        UsuarioLog usuarioLog = new UsuarioLog()
+                        {
+                            UsuarioId = (int)entry.Property("Id").CurrentValue,
+                            Action = auditEntry.Action.ToString(),
+                            NomeTabela = auditEntry.EntityType.Name.ToString(),
+                            Data = log.Date,
+                            Valores = new List<UsuarioLogValores>(),
+                        };
+
+                        db.UsuarioLogs.Add(usuarioLog);
+
+                        await db.SaveChangesWithTriggersAsync(db.SaveChangesAsync);
+
+                        foreach (var value in auditEntry.Properties)
+                        {
+                            var usuarioLogValores = new UsuarioLogValores()
+                            {
+                                UsuarioLogId = usuarioLog.UsuarioLogId,
+                                NomePropriedade = value.Name.ToString(),
+                                ValorAntigo = value.Original != null ? value.Original.ToString() : null,
+                                ValorNovo = value.Current != null ? value.Current.ToString() : null,
+                            };
+
+                            auditLogsValores.Add(usuarioLogValores);
+                        }
+                    }
+                }
+            }
+
+            db.UsuarioLogValores.AddRange(auditLogsValores);
+
+            await db.SaveChangesWithTriggersAsync(db.SaveChangesAsync);
         }
 
         //protected override void OnModelCreating(DbModelBuilder modelBuilder)

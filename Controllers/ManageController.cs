@@ -1,11 +1,15 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using MeuCantinhoDeEstudos3.Models;
+using MeuCantinhoDeEstudos3.Models.ClassesDeLog;
 using MeuCantinhoDeEstudos3.ViewModels;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
+using Z.BulkOperations;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
@@ -14,6 +18,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
     {
         private GerenciadorLogin _signInManager;
         private GerenciadorUsuarios _userManager;
+        MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
 
         public ManageController()
         {
@@ -229,18 +234,72 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 return View(model);
             }
+
             var result = await GerenciadorUsuarios.ChangePasswordAsync(User.Identity.GetUserId<int>(), model.OldPassword, model.NewPassword);
+            
             if (result.Succeeded)
             {
+                List<AuditEntry> auditEntries = new List<AuditEntry>();
+
+                db.BulkSaveChanges(options =>
+                {
+                    options.UseAudit = true;
+                    options.AuditEntries = auditEntries;
+                });
+
+                await SaveUsuarioAuditChanges(auditEntries, User.Identity.GetUserId<int>());
+
                 var user = await GerenciadorUsuarios.FindByIdAsync(User.Identity.GetUserId<int>());
+
                 if (user != null)
                 {
                     await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
                 }
+
                 return RedirectToAction("Index", new { Message = ManageMessageId.ChangePasswordSuccess });
             }
             AddErrors(result);
             return View(model);
+        }
+
+        private static async Task SaveUsuarioAuditChanges(List<AuditEntry> auditEntries, int userId)
+        {
+            MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
+
+            List<UsuarioLog> auditLogs = new List<UsuarioLog>();
+
+            List<UsuarioLogValores> auditLogsValues = new List<UsuarioLogValores>();
+
+            foreach (var auditEntry in auditEntries)
+            {
+                UsuarioLog usuarioLog = new UsuarioLog()
+                {
+                    UsuarioId = userId,
+                    Action = auditEntry.Action.ToString(),
+                    NomeTabela = auditEntry.TableName,
+                    Data = auditEntry.Date,
+                    Valores = new List<UsuarioLogValores>(),
+                };
+
+                auditLogs.Add(usuarioLog);
+
+                await db.BulkInsertAsync(auditLogs);
+
+                foreach (var value in auditEntry.Values)
+                {
+                    var usuarioLogValue = new UsuarioLogValores()
+                    {
+                        UsuarioLogId = usuarioLog.UsuarioLogId,
+                        NomePropriedade = value.ColumnName,
+                        ValorAntigo = value.OldValue != null ? value.OldValue.ToString() : null,
+                        ValorNovo = value.NewValue != null ? value.NewValue.ToString() : null,
+                    };
+
+                    auditLogsValues.Add(usuarioLogValue);
+                }
+            }
+
+            await db.BulkInsertAsync(auditLogsValues, options => options.AutoMapOutputDirection = false);
         }
 
         //

@@ -1,16 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MeuCantinhoDeEstudos3.Models
+namespace MeuCantinhoDeEstudos3.Models.ClassesDeLog
 {
-    public class UsuarioLogValue
+    public class UsuarioLogValores
     {
         [Key]
-        public int UsuarioLogValueId { get; set; }
+        public int UsuarioLogValoresId { get; set; }
 
         public int UsuarioLogId { get; set; }
 
-        public string NomeColuna { get; set; }
+        public string NomePropriedade { get; set; }
 
         public string ValorNovo { get; set; }
 

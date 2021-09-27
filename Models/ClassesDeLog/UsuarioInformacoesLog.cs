@@ -8,10 +8,10 @@ using System.Web;
 
 namespace MeuCantinhoDeEstudos3.Models
 {
-    public class UsuarioLog
+    public class UsuarioInformacoesLog
     {
 		[Key]
-		public int UsuarioLogId { get; set; }
+		public int UsuarioInformacoesLogId { get; set; }
 
 		public int UsuarioId { get; set; }
 
@@ -19,9 +19,9 @@ namespace MeuCantinhoDeEstudos3.Models
 
 		public string NomeTabela { get; set; }
 
-		public DateTime Date { get; set; }
+		public DateTime Data { get; set; }
 
-		public List<UsuarioLogValue> Values { get; set; }
+		public List<UsuarioInformacoesLogValores> Valores { get; set; }
 
 		[ForeignKey(nameof(UsuarioId))]
 		public virtual Usuario Usuario { get; set; }

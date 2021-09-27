@@ -43,7 +43,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     db.Entry(usuarioInformacoes).State = EntityState.Added;
-
+                    
                     List<AuditEntry> auditEntries = new List<AuditEntry>();
 
                     db.BulkSaveChanges(options =>
@@ -52,7 +52,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                         options.AuditEntries = auditEntries;
                     });
 
-                    await SaveUsuarioAuditChanges(auditEntries, User.Identity.GetUserId<int>());
+                    await SaveUsuarioInformacoesAuditChanges(auditEntries, User.Identity.GetUserId<int>());
 
                     scope.Complete();
                 }
@@ -99,7 +99,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                         options.AuditEntries = auditEntries;
                     });
 
-                    await SaveUsuarioAuditChanges(auditEntries, User.Identity.GetUserId<int>());
+                    await SaveUsuarioInformacoesAuditChanges(auditEntries, User.Identity.GetUserId<int>());
                     
                     scope.Complete();
                 }
@@ -110,23 +110,23 @@ namespace MeuCantinhoDeEstudos3.Controllers
             return RedirectToAction("Edit");
         }
 
-        private static async Task SaveUsuarioAuditChanges(List<AuditEntry> auditEntries, int userId)
+        private static async Task SaveUsuarioInformacoesAuditChanges(List<AuditEntry> auditEntries, int userId)
         {
             MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
 
-            List<UsuarioLog> auditLogs = new List<UsuarioLog>();
+            List<UsuarioInformacoesLog> auditLogs = new List<UsuarioInformacoesLog>();
 
-            List<UsuarioLogValue> auditLogsValues = new List<UsuarioLogValue>();
+            List<UsuarioInformacoesLogValores> auditLogsValues = new List<UsuarioInformacoesLogValores>();
 
             foreach (var auditEntry in auditEntries)
             {
-                UsuarioLog usuarioLog = new UsuarioLog()
+                UsuarioInformacoesLog usuarioLog = new UsuarioInformacoesLog()
                 {
                     UsuarioId = userId,
                     Action = auditEntry.Action.ToString(),
                     NomeTabela = auditEntry.TableName,
-                    Date = auditEntry.Date,
-                    Values = new List<UsuarioLogValue>(),
+                    Data = auditEntry.Date,
+                    Valores = new List<UsuarioInformacoesLogValores>(),
                 };
 
                 auditLogs.Add(usuarioLog);
@@ -135,10 +135,10 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
                 foreach (var value in auditEntry.Values)
                 {
-                    var usuarioLogValue = new UsuarioLogValue()
+                    var usuarioLogValue = new UsuarioInformacoesLogValores()
                     {
-                        UsuarioLogId = usuarioLog.UsuarioLogId,
-                        NomeColuna = value.ColumnName,
+                        UsuarioInformacoesLogId = usuarioLog.UsuarioInformacoesLogId,
+                        NomePropriedade = value.ColumnName,
                         ValorAntigo = value.OldValue != null ? value.OldValue.ToString() : null,
                         ValorNovo = value.NewValue != null ? value.NewValue.ToString() : null,
                     };

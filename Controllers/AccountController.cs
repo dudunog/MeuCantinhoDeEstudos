@@ -9,6 +9,9 @@ using MeuCantinhoDeEstudos3.Models;
 using MeuCantinhoDeEstudos3.ViewModels;
 using System.Transactions;
 using System.Data.Entity;
+using Z.BulkOperations;
+using System.Collections.Generic;
+using MeuCantinhoDeEstudos3.Models.ClassesDeLog;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
@@ -153,17 +156,70 @@ namespace MeuCantinhoDeEstudos3.Controllers
             if (ModelState.IsValid)
             {
                 var user = new Usuario { UserName = model.Email, Email = model.Email };
+
+                List<AuditEntry> auditEntries = new List<AuditEntry>();
+
+                db.BulkSaveChanges(options =>
+                {
+                    options.UseAudit = true;
+                    options.AuditEntries = auditEntries;
+                });
+
+                await SaveUsuarioAuditChanges(auditEntries, User.Identity.GetUserId<int>());
+
                 var result = await UserManager.CreateAsync(user, model.Password);
+
                 if (result.Succeeded)
                 {
                     await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
 
                     return RedirectToAction("Index", "Home");
                 }
+
                 AddErrors(result);
             }
 
             return View(model);
+        }
+
+        private static async Task SaveUsuarioAuditChanges(List<AuditEntry> auditEntries, int userId)
+        {
+            MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
+
+            List<UsuarioLog> auditLogs = new List<UsuarioLog>();
+
+            List<UsuarioLogValores> auditLogsValues = new List<UsuarioLogValores>();
+
+            foreach (var auditEntry in auditEntries)
+            {
+                UsuarioLog usuarioLog = new UsuarioLog()
+                {
+                    UsuarioId = userId,
+                    Action = auditEntry.Action.ToString(),
+                    NomeTabela = auditEntry.TableName,
+                    Data = auditEntry.Date,
+                    Valores = new List<UsuarioLogValores>(),
+                };
+
+                auditLogs.Add(usuarioLog);
+
+                await db.BulkInsertAsync(auditLogs);
+
+                foreach (var value in auditEntry.Values)
+                {
+                    var usuarioLogValue = new UsuarioLogValores()
+                    {
+                        UsuarioLogId = usuarioLog.UsuarioLogId,
+                        NomePropriedade = value.ColumnName,
+                        ValorAntigo = value.OldValue != null ? value.OldValue.ToString() : null,
+                        ValorNovo = value.NewValue != null ? value.NewValue.ToString() : null,
+                    };
+
+                    auditLogsValues.Add(usuarioLogValue);
+                }
+            }
+
+            await db.BulkInsertAsync(auditLogsValues, options => options.AutoMapOutputDirection = false);
         }
 
         //
@@ -175,7 +231,9 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 return View("Error");
             }
+
             var result = await UserManager.ConfirmEmailAsync(userId.Value, code);
+
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }
 
@@ -197,6 +255,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
             if (ModelState.IsValid)
             {
                 var user = await UserManager.FindByNameAsync(model.Email);
+
                 if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)))
                 {
                     // Don't reveal that the user does not exist or is not confirmed
