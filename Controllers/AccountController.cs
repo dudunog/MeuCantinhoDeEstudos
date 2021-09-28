@@ -157,15 +157,15 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 var user = new Usuario { UserName = model.Email, Email = model.Email };
 
-                List<AuditEntry> auditEntries = new List<AuditEntry>();
+                //List<AuditEntry> auditEntries = new List<AuditEntry>();
 
-                db.BulkSaveChanges(options =>
-                {
-                    options.UseAudit = true;
-                    options.AuditEntries = auditEntries;
-                });
+                //db.BulkSaveChanges(options =>
+                //{
+                //    options.UseAudit = true;
+                //    options.AuditEntries = auditEntries;
+                //});
 
-                await SaveUsuarioAuditChanges(auditEntries, User.Identity.GetUserId<int>());
+                //await SaveUsuarioAuditChanges(auditEntries, User.Identity.GetUserId<int>());
 
                 var result = await UserManager.CreateAsync(user, model.Password);
 

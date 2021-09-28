@@ -39,10 +39,10 @@ namespace MeuCantinhoDeEstudos3.Models
         public DbSet<BateriaExercicio> BateriasExercicios { get; set; }
         public DbSet<VideoAula> VideoAulas { get; set; }
         public DbSet<UsuarioInformacoes> UsuarioInformacoes { get; set; }
-        public DbSet<UsuarioInformacoesLog> UsuarioInformacoesLogs { get; set; }
-        public DbSet<UsuarioInformacoesLogValores> UsuarioInformacoesLogValores { get; set; }
         public DbSet<UsuarioLog> UsuarioLogs { get; set; }
         public DbSet<UsuarioLogValores> UsuarioLogValores { get; set; }
+        public DbSet<UsuarioInformacoesLog> UsuarioInformacoesLogs { get; set; }
+        public DbSet<UsuarioInformacoesLogValores> UsuarioInformacoesLogValores { get; set; }
 
         public static bool IsAssignableToGenericType(Type givenType, Type genericType)
         {
@@ -78,7 +78,7 @@ namespace MeuCantinhoDeEstudos3.Models
 
                 this.SaveChangesWithTriggers(base.SaveChanges);
 
-                ApplyAuditInUsuarioEntity(ChangeTracker, audit);
+                ApplyIncrementAudit(ChangeTracker, audit);
             }
             catch (DbEntityValidationException ex)
             {
@@ -131,7 +131,7 @@ namespace MeuCantinhoDeEstudos3.Models
 
                 await this.SaveChangesWithTriggersAsync(base.SaveChangesAsync);
 
-                ApplyAuditInUsuarioEntity(ChangeTracker, audit);
+                ApplyIncrementAudit(ChangeTracker, audit);
             }
             catch (DbEntityValidationException ex)
             {
@@ -168,6 +168,12 @@ namespace MeuCantinhoDeEstudos3.Models
             return await this.SaveChangesWithTriggersAsync(base.SaveChangesAsync);
         }
 
+        private void ApplyIncrementAudit(DbChangeTracker changeTracker, AuditLogger audit)
+        {
+            ApplyAuditInUsuarioEntity(changeTracker, audit);
+            //ApplyAuditInUsuarioInformacoesEntity(changeTracker, audit);
+        }
+
         private static void ApplyCreationAndModificationProperts(DbEntityEntry entry)
         {
             var currentTime = DateTime.Now;
@@ -201,7 +207,7 @@ namespace MeuCantinhoDeEstudos3.Models
             }
         }
 
-        public static async void ApplyAuditInUsuarioEntity(DbChangeTracker changeTracker, AuditLogger audit)
+        private static async void ApplyAuditInUsuarioEntity(DbChangeTracker changeTracker, AuditLogger audit)
         {
             MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
             List<UsuarioLogValores> auditLogsValores = new List<UsuarioLogValores>();
@@ -209,7 +215,8 @@ namespace MeuCantinhoDeEstudos3.Models
             foreach (var entry in changeTracker.Entries().Where(e => e.Entity != null &&
                     typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
             {
-                if (entry.Entity.GetType().ToString().Contains("Usuario"))
+                if (entry.Entity.GetType().BaseType.Name == typeof(Usuario).Name ||
+                    entry.Entity.GetType().Name == typeof(Usuario).Name)
                 {
                     var log = audit.LastLog;
 
@@ -228,25 +235,73 @@ namespace MeuCantinhoDeEstudos3.Models
 
                         await db.SaveChangesWithTriggersAsync(db.SaveChangesAsync);
 
-                        foreach (var value in auditEntry.Properties)
+                        foreach (var propery in auditEntry.Properties)
                         {
                             var usuarioLogValores = new UsuarioLogValores()
                             {
                                 UsuarioLogId = usuarioLog.UsuarioLogId,
-                                NomePropriedade = value.Name.ToString(),
-                                ValorAntigo = value.Original != null ? value.Original.ToString() : null,
-                                ValorNovo = value.Current != null ? value.Current.ToString() : null,
+                                NomePropriedade = propery.Name.ToString(),
+                                ValorAntigo = propery.Original != null ? propery.Original.ToString() : null,
+                                ValorNovo = propery.Current != null ? propery.Current.ToString() : null,
                             };
 
                             auditLogsValores.Add(usuarioLogValores);
                         }
+
+                        db.UsuarioLogValores.AddRange(auditLogsValores);
                     }
+
+                    await db.SaveChangesWithTriggersAsync(db.SaveChangesAsync);
                 }
             }
+        }
 
-            db.UsuarioLogValores.AddRange(auditLogsValores);
+        private static async void ApplyAuditInUsuarioInformacoesEntity(DbChangeTracker changeTracker, AuditLogger audit)
+        {
+            MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
+            List<UsuarioInformacoesLogValores> auditLogsValores = new List<UsuarioInformacoesLogValores>();
 
-            await db.SaveChangesWithTriggersAsync(db.SaveChangesAsync);
+            foreach (var entry in changeTracker.Entries().Where(e => e.Entity != null &&
+                    typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
+            {
+                if (entry.Entity.GetType().Name == typeof(UsuarioInformacoes).Name)
+                {
+                    var log = audit.LastLog;
+
+                    foreach (var auditEntry in log.Entities)
+                    {
+                        UsuarioInformacoesLog usuarioInformacoesLog = new UsuarioInformacoesLog()
+                        {
+                            UsuarioInformacoesId = (int)entry.Property("UsuarioId").CurrentValue,
+                            Action = auditEntry.Action.ToString(),
+                            NomeTabela = auditEntry.EntityType.Name.ToString(),
+                            Data = log.Date,
+                            Valores = new List<UsuarioInformacoesLogValores>(),
+                        };
+
+                        db.UsuarioInformacoesLogs.Add(usuarioInformacoesLog);
+
+                        await db.SaveChangesWithTriggersAsync(db.SaveChangesAsync);
+
+                        foreach (var propery in auditEntry.Properties)
+                        {
+                            var usuarioInformacoesLogValores = new UsuarioInformacoesLogValores()
+                            {
+                                UsuarioInformacoesLogId = usuarioInformacoesLog.UsuarioInformacoesLogId,
+                                NomePropriedade = propery.Name.ToString(),
+                                ValorAntigo = propery.Original != null ? propery.Original.ToString() : null,
+                                ValorNovo = propery.Current != null ? propery.Current.ToString() : null,
+                            };
+
+                            auditLogsValores.Add(usuarioInformacoesLogValores);
+                        }
+
+                        db.UsuarioInformacoesLogValores.AddRange(auditLogsValores);
+                    }
+
+                    await db.SaveChangesWithTriggersAsync(db.SaveChangesAsync);
+                }
+            }
         }
 
         //protected override void OnModelCreating(DbModelBuilder modelBuilder)

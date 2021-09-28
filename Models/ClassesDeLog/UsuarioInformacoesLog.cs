@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Web;
 
-namespace MeuCantinhoDeEstudos3.Models
+namespace MeuCantinhoDeEstudos3.Models.ClassesDeLog
 {
     public class UsuarioInformacoesLog
     {
 		[Key]
 		public int UsuarioInformacoesLogId { get; set; }
 
-		public int UsuarioId { get; set; }
+		public int UsuarioInformacoesId { get; set; }
 
 		public string Action { get; set; }
 
@@ -23,7 +20,7 @@ namespace MeuCantinhoDeEstudos3.Models
 
 		public List<UsuarioInformacoesLogValores> Valores { get; set; }
 
-		[ForeignKey(nameof(UsuarioId))]
-		public virtual Usuario Usuario { get; set; }
+		[ForeignKey(nameof(UsuarioInformacoesId))]
+		public virtual UsuarioInformacoes UsuarioInformacoes { get; set; }
 	}
 }

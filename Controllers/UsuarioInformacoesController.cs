@@ -1,5 +1,5 @@
-﻿using EntityFramework.Extensions;
-using MeuCantinhoDeEstudos3.Models;
+﻿using MeuCantinhoDeEstudos3.Models;
+using MeuCantinhoDeEstudos3.Models.ClassesDeLog;
 using Microsoft.AspNet.Identity;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -43,16 +43,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     db.Entry(usuarioInformacoes).State = EntityState.Added;
-                    
-                    List<AuditEntry> auditEntries = new List<AuditEntry>();
 
-                    db.BulkSaveChanges(options =>
-                    {
-                        options.UseAudit = true;
-                        options.AuditEntries = auditEntries;
-                    });
-
-                    await SaveUsuarioInformacoesAuditChanges(auditEntries, User.Identity.GetUserId<int>());
+                    await db.SaveChangesAsync();
 
                     scope.Complete();
                 }
@@ -90,16 +82,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {                    
                     db.Entry(usuarioInformacoes).State = EntityState.Modified;
-                    
-                    List<AuditEntry> auditEntries = new List<AuditEntry>();
 
-                    db.BulkSaveChanges(options =>
-                    {
-                        options.UseAudit = true;
-                        options.AuditEntries = auditEntries;
-                    });
-
-                    await SaveUsuarioInformacoesAuditChanges(auditEntries, User.Identity.GetUserId<int>());
+                    await db.SaveChangesAsync();
                     
                     scope.Complete();
                 }
@@ -110,44 +94,44 @@ namespace MeuCantinhoDeEstudos3.Controllers
             return RedirectToAction("Edit");
         }
 
-        private static async Task SaveUsuarioInformacoesAuditChanges(List<AuditEntry> auditEntries, int userId)
-        {
-            MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
+        //private static async Task SaveUsuarioInformacoesAuditChanges(List<AuditEntry> auditEntries, int userId)
+        //{
+        //    MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
 
-            List<UsuarioInformacoesLog> auditLogs = new List<UsuarioInformacoesLog>();
+        //    List<UsuarioInformacoesLog> auditLogs = new List<UsuarioInformacoesLog>();
 
-            List<UsuarioInformacoesLogValores> auditLogsValues = new List<UsuarioInformacoesLogValores>();
+        //    List<UsuarioInformacoesLogValores> auditLogsValues = new List<UsuarioInformacoesLogValores>();
 
-            foreach (var auditEntry in auditEntries)
-            {
-                UsuarioInformacoesLog usuarioLog = new UsuarioInformacoesLog()
-                {
-                    UsuarioId = userId,
-                    Action = auditEntry.Action.ToString(),
-                    NomeTabela = auditEntry.TableName,
-                    Data = auditEntry.Date,
-                    Valores = new List<UsuarioInformacoesLogValores>(),
-                };
+        //    foreach (var auditEntry in auditEntries)
+        //    {
+        //        UsuarioInformacoesLog usuarioLog = new UsuarioInformacoesLog()
+        //        {
+        //            UsuarioId = userId,
+        //            Action = auditEntry.Action.ToString(),
+        //            NomeTabela = auditEntry.TableName,
+        //            Data = auditEntry.Date,
+        //            Valores = new List<UsuarioInformacoesLogValores>(),
+        //        };
 
-                auditLogs.Add(usuarioLog);
+        //        auditLogs.Add(usuarioLog);
 
-                await db.BulkInsertAsync(auditLogs);
+        //        await db.BulkInsertAsync(auditLogs);
 
-                foreach (var value in auditEntry.Values)
-                {
-                    var usuarioLogValue = new UsuarioInformacoesLogValores()
-                    {
-                        UsuarioInformacoesLogId = usuarioLog.UsuarioInformacoesLogId,
-                        NomePropriedade = value.ColumnName,
-                        ValorAntigo = value.OldValue != null ? value.OldValue.ToString() : null,
-                        ValorNovo = value.NewValue != null ? value.NewValue.ToString() : null,
-                    };
+        //        foreach (var value in auditEntry.Values)
+        //        {
+        //            var usuarioLogValue = new UsuarioInformacoesLogValores()
+        //            {
+        //                UsuarioInformacoesLogId = usuarioLog.UsuarioInformacoesLogId,
+        //                NomePropriedade = value.ColumnName,
+        //                ValorAntigo = value.OldValue != null ? value.OldValue.ToString() : null,
+        //                ValorNovo = value.NewValue != null ? value.NewValue.ToString() : null,
+        //            };
 
-                    auditLogsValues.Add(usuarioLogValue);
-                }
-            }
+        //            auditLogsValues.Add(usuarioLogValue);
+        //        }
+        //    }
 
-            await db.BulkInsertAsync(auditLogsValues, options => options.AutoMapOutputDirection = false);
-        }
+        //    await db.BulkInsertAsync(auditLogsValues, options => options.AutoMapOutputDirection = false);
+        //}
     }
 }

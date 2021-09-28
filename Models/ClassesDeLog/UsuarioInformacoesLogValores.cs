@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MeuCantinhoDeEstudos3.Models
+namespace MeuCantinhoDeEstudos3.Models.ClassesDeLog
 {
     public class UsuarioInformacoesLogValores
     {
@@ -17,6 +17,6 @@ namespace MeuCantinhoDeEstudos3.Models
         public string ValorAntigo { get; set; }
 
         [ForeignKey(nameof(UsuarioInformacoesLogId))]
-        public UsuarioInformacoesLog UsuarioInformacoesLog { get; set; }
+        public virtual UsuarioInformacoesLog UsuarioInformacoesLog { get; set; }
     }
 }

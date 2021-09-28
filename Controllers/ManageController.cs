@@ -239,16 +239,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
             
             if (result.Succeeded)
             {
-                List<AuditEntry> auditEntries = new List<AuditEntry>();
-
-                db.BulkSaveChanges(options =>
-                {
-                    options.UseAudit = true;
-                    options.AuditEntries = auditEntries;
-                });
-
-                await SaveUsuarioAuditChanges(auditEntries, User.Identity.GetUserId<int>());
-
                 var user = await GerenciadorUsuarios.FindByIdAsync(User.Identity.GetUserId<int>());
 
                 if (user != null)

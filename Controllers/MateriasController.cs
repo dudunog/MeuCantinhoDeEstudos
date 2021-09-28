@@ -130,7 +130,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
         }
 
         // GET: Materias/Delete/5
-        public async Task<ActionResult> Delete(int? id)
+        public ActionResult Delete(int? id)
         {
             if (id == null)
             {
