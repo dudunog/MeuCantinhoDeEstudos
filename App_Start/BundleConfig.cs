@@ -25,6 +25,16 @@ namespace MeuCantinhoDeEstudos3
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
                       "~/Content/site.css"));
+
+            bundles.Add(new StyleBundle("~/Content/Site").Include(
+                "~/Content/Site.css"));
+
+            //Bootstrap-color-picker
+            bundles.Add(new ScriptBundle("~/bundles/colorscripts").Include(
+                "~/Scripts/bootstrap-colorpicker.js"));
+
+            bundles.Add(new StyleBundle("~/Content/bootstrap-colorpicker/bootstrap-colorpicker/colorstyle").Include(
+                "~/Content/bootstrap-colorpicker/css/bootstrap-colorpicker.css"));
         }
     }
 }

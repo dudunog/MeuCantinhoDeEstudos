@@ -17,9 +17,22 @@ namespace MeuCantinhoDeEstudos3.Controllers
         private MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
 
         // GET: VideoAulas
-        public async Task<ActionResult> Index()
+        public async Task<ActionResult> Index(string search)
         {
-            return View(await db.VideoAulas.ToListAsync());
+            var userId = User.Identity.GetUserId<int>();
+
+            ViewBag.CurrentSearch = search;
+
+            var videoAulas = db.VideoAulas
+                           .Include(v => v.Tema.Materia)
+                           .Where(v => v.Tema.Materia.UsuarioId == userId);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                videoAulas = videoAulas.Where(a => a.Descricao.ToUpper().Contains(search.ToUpper()));
+            }
+
+            return View(await videoAulas.ToListAsync());
         }
 
         // GET: VideoAulas/Details/5

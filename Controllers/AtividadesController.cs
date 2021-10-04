@@ -17,9 +17,22 @@ namespace MeuCantinhoDeEstudos3.Controllers
         private MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
 
         // GET: Atividades
-        public async Task<ActionResult> Index()
+        public async Task<ActionResult> Index(string search)
         {
-            return View(await db.Atividades.ToListAsync());
+            var userId = User.Identity.GetUserId<int>();
+
+            ViewBag.CurrentSearch = search;
+
+            var atividades = db.Atividades
+                           .Include(a => a.Tema.Materia)
+                           .Where(m => m.Tema.Materia.UsuarioId == userId);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                atividades = atividades.Where(a => a.Descricao.ToUpper().Contains(search.ToUpper()));
+            }
+           
+            return View(await atividades.ToListAsync());
         }
 
         // GET: Atividades/Details/5

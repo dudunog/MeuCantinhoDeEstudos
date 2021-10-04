@@ -4,12 +4,13 @@
     ViewBag.Title = "Detalhes";
 }
 
-<h2>Detalhes</h2>
+<div class="page-header">
+    <h2>Detalhes</h2>
 
-<h4>Tema</h4>
+    <h4>Tema</h4>
+</div>
 
 <div>
-    <hr />
     <dl class="dl-horizontal">
         <dt>
             @Html.DisplayNameFor(model => model.Nome)
@@ -54,7 +55,13 @@
     </dl>
 </div>
 
-<hr />
+<p>
+    @Html.ActionLink("Editar", "Edit", new { id = Model.TemaId }) |
+    @Html.ActionLink("Voltar", "Index")
+</p>
+
+<br />
+
 <h2>@Html.DisplayNameFor(model => model.Atividades)</h2>
 
 @foreach (var atividade in Model.Atividades)
@@ -66,9 +73,3 @@
         </a>
     </div>
 }
-<br />
-
-<p>
-    @Html.ActionLink("Editar", "Edit", new { id = Model.TemaId }) |
-    @Html.ActionLink("Voltar", "Index")
-</p>

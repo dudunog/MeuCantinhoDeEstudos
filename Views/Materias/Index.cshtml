@@ -2,16 +2,18 @@
 
 @{
     ViewBag.Title = "Matérias";
+
+    <link rel="stylesheet" href="~/Content/Materia.css" />
 }
 
+<div class="page-header">
+    <h2>Matérias</h2>
+
+    <p>Aqui você encontra as matérias.</p>
+</div>
+
 <div class="row">
-    <div class="col-lg-12">
-        <h2>Matérias</h2>
-
-        <p>
-            @Html.ActionLink("Adicionar matéria", "Create")
-        </p>
-
+    <div class="col-lg-12 tools">
         <form action="/Materias/Index" method="get">
             <div class="form-inline" accesskey="">
                 <span>Filtre pelo nome</span>
@@ -20,6 +22,8 @@
                 @Html.ActionLink("Remover filtro", "Index")
             </div>
         </form>
+
+        @Html.ActionLink("Adicionar matéria", "Create")
     </div>
 </div>
 
@@ -36,20 +40,23 @@
         <th></th>
     </tr>
 
-    @foreach (var item in Model) {
+    @foreach (var item in Model)
+    {
         <tr>
             <td>
+                <span class="badge" style="background-color:#@item.CorIdentificacao;width:1px;height:14px;"> </span>
                 @Html.DisplayFor(modelItem => item.Nome)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.CorIdentificacao)
             </td>
             <td>
-                @Html.ActionLink("Editar", "Edit", new { id=item.MateriaId }) |
-                @Html.ActionLink("Detalhes", "Details", new { id=item.MateriaId }) |
-                @Html.ActionLink("Excluir", "Delete", new { id=item.MateriaId })
+                @Html.ActionLink("Editar", "Edit", new { id = item.MateriaId }) |
+                @Html.ActionLink("Detalhes", "Details", new { id = item.MateriaId }) |
+                @Html.ActionLink("Excluir", "Delete", new { id = item.MateriaId })
             </td>
         </tr>
     }
-
 </table>
+
+@Html.ActionLink("Gerar relatório", "GerarRelatorioPDF")

@@ -15,12 +15,22 @@ namespace MeuCantinhoDeEstudos3.Controllers
         private MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
 
         // GET: BateriaExercicios
-        public async Task<ActionResult> Index()
+        public async Task<ActionResult> Index(string search)
         {
-            return View(await db.BateriasExercicios
-                              .Include(bt => bt.Tema)
-                              .Include(t => t.Materia)
-                              .ToListAsync());
+            var userId = User.Identity.GetUserId<int>();
+
+            ViewBag.CurrentSearch = search;
+
+            var bateriasExercicios = db.BateriasExercicios
+                                    .Include(b => b.Tema.Materia)
+                                    .Where(b => b.Tema.Materia.UsuarioId == userId);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                bateriasExercicios = bateriasExercicios.Where(a => a.Descricao.ToUpper().Contains(search.ToUpper()));
+            }
+
+            return View(await bateriasExercicios.ToListAsync());
         }
 
         // GET: BateriaExercicios/Details/5

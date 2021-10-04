@@ -4,11 +4,15 @@
     ViewBag.Title = "Excluir";
 }
 
-<h2>Excluir</h2>
+<div class="page-header">
+    <h2>Excluir</h2>
 
-<h4>Matéria</h4>
+    <h4>Matéria</h4>
+</div>
 
-<h3>Tem certeza que deseja excluir?</h3>
+<div class="alert alert-danger">
+    <p>Tem certeza que deseja excluir?</p>
+</div>
 
 @if (Model.Temas.Count > 0)
 {

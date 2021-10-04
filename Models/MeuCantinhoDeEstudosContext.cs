@@ -304,6 +304,64 @@ namespace MeuCantinhoDeEstudos3.Models
             }
         }
 
+        //public static async void SaveChangesWithBulkInsertBulkInsert<T>(IEnumerable<T> entities) where T : class
+        //{
+        //    MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
+
+        //    try
+        //    {
+        //        var currentTime = DateTime.Now;
+        //        foreach (var entry in ChangeTracker.Entries().Where(e => e.Entity != null &&
+        //            //IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade))))
+        //            typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
+        //        {
+        //            ApplyCreationAndModificationProperts(entry);
+        //        }
+
+        //        var audit = this.BeginAudit();
+
+        //        await this.SaveChangesWithTriggersAsync(base.SaveChangesAsync);
+
+        //        ApplyIncrementAudit(ChangeTracker, audit);
+        //    }
+        //    catch (DbEntityValidationException ex)
+        //    {
+        //        var errorMessages = ex.EntityValidationErrors
+        //            .SelectMany(x => x.ValidationErrors)
+        //            .Select(x => x.ErrorMessage);
+
+        //        var fullErrorMessage = string.Join("; ", errorMessages);
+
+        //        var exceptionsMessage = string.Concat(ex.Message, "Os erros de validações são: ", fullErrorMessage);
+
+        //        throw new DbEntityValidationException(exceptionsMessage, ex.EntityValidationErrors);
+        //    }
+
+        //    foreach (var entidade in ChangeTracker.Entries().Where(e => e.Entity != null &&
+        //            IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidadeAuditada<>))))
+        //    // typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
+        //    {
+        //        var tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[0].GenericTypeArguments[0];
+        //        var registroTabelaAuditoria = Activator.CreateInstance(tipoTabelaAuditoria);
+
+        //        var classePrincipal = ObjectAccessor.Create(entidade.Entity);
+        //        var typer_classePrincipal = TypeAccessor.Create(entidade.Entity.GetType());
+        //        var classeAuditoria = ObjectAccessor.Create(registroTabelaAuditoria);
+
+        //        foreach (var member in typer_classePrincipal.GetMembers())
+        //        {
+        //            classeAuditoria[member.Name] = classePrincipal[member.Name];
+        //        }
+
+        //        this.Set(registroTabelaAuditoria.GetType()).Add(classeAuditoria.Target);
+        //    }
+
+        //    return await this.SaveChangesWithTriggersAsync(base.SaveChangesAsync);
+
+        //    db.BulkInsert(entities);
+        //    await db.SaveChangesAsync();
+        //}
+
         //protected override void OnModelCreating(DbModelBuilder modelBuilder)
         //{
         //    modelBuilder.Entity<Atividade>()

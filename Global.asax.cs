@@ -1,14 +1,9 @@
-﻿using EntityFramework.Audit;
-using MeuCantinhoDeEstudos3.Models;
+﻿using System.Web.Optimization;
+using EntityFramework.Audit;
 using StackExchange.Profiling;
 using StackExchange.Profiling.EntityFramework6;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.Http;
 using System.Web.Mvc;
-using System.Web.Optimization;
 using System.Web.Routing;
 
 namespace MeuCantinhoDeEstudos3

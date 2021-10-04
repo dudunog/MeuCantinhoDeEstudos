@@ -15,7 +15,7 @@ namespace MeuCantinhoDeEstudos3.Models
         public DateTime? UltimaModificacao { get; set; }
         public string UsuarioModificacao { get; set; }
 
-        public Entidade()
+        static Entidade()
         {
             Triggers<Entidade>.Inserting += entry => entry.Entity.DataCriacao = DateTime.Now;
             Triggers<Entidade>.Updating += entry => entry.Entity.UltimaModificacao = DateTime.Now;

@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using EntityFramework.Triggers;
+using FileHelpers;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,6 +9,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MeuCantinhoDeEstudos3.Models
 {
+    [DelimitedRecord(";")]
     public class Materia : IEntidadeAuditada<MateriaAuditoria>
     {
         [Key]
@@ -18,7 +21,7 @@ namespace MeuCantinhoDeEstudos3.Models
         [DisplayName("Matéria")]
         public string Nome { get; set; }
 
-        [StringLength(6)]
+        [StringLength(7)]
         [DisplayName("Cor de identificacao")]
         public string CorIdentificacao { get; set; }
 

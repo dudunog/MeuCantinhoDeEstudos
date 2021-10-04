@@ -3,10 +3,14 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Web.Mvc;
 using MeuCantinhoDeEstudos3.Models;
-using StackExchange.Profiling;
 using Microsoft.AspNet.Identity;
 using System.Linq;
 using System.Transactions;
+using MeuCantinhoDeEstudos3.Models.PDF;
+using System;
+using ExcelDataReader;
+using System.Data;
+using System.Collections.Generic;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
@@ -70,6 +74,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             if (ModelState.IsValid)
             {
+                materia.CorIdentificacao = RemovePrefix(materia.CorIdentificacao);
+
                 materia.UsuarioId = User.Identity.GetUserId<int>();
 
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
@@ -113,6 +119,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             if (ModelState.IsValid)
             {
+                materia.CorIdentificacao = RemovePrefix(materia.CorIdentificacao);
+                
                 materia.UsuarioId = User.Identity.GetUserId<int>();
 
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
@@ -165,6 +173,64 @@ namespace MeuCantinhoDeEstudos3.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        private static string RemovePrefix(string corIdentificacao)
+        {
+            return corIdentificacao.Replace("#", "");
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> ImportarExcel()
+        {
+            var userId = User.Identity.GetUserId<int>();
+            var postedFile = Request.Files[0];
+            var materias = new List<Materia>();
+
+            IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
+
+            DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
+            {
+                ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
+                {
+                    UseHeaderRow = true,
+                }
+            });
+
+            while (excelReader.Read())
+            {
+                if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1)))
+                {
+                    materias.Add(new Materia
+                    {
+                        Nome = excelReader.GetString(0),
+                        CorIdentificacao = excelReader.GetString(1),
+                        UsuarioId = userId,
+                        DataCriacao = DateTime.Now,
+                        UsuarioCriacao = User.Identity.GetUserName(),
+                    });
+                }
+            }
+
+            excelReader.Close();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                db.BulkInsert(materias);
+                await db.SaveChangesAsync();
+
+                scope.Complete();
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public async Task<FileResult> GerarRelatorioPDF([Bind(Include = "UsuarioId,Nome,CorIdentificacao")] Materia materia)
+        {
+            var arquivo = Report<Materia>.Create(db.Materias.Include(m => m.Usuario).ToList());
+
+            return File(arquivo, "application/pdf", "Bairros.pdf");
         }
 
         protected override void Dispose(bool disposing)

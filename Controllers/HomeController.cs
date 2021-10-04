@@ -15,7 +15,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
         public ActionResult About()
         {
-            ViewBag.Message = "Your application description page.";
+            ViewBag.Message = "O lugar ideal para você ter um estudo de alto rendimento!";
 
             return View();
         }

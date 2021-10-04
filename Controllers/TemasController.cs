@@ -8,6 +8,9 @@ using Microsoft.AspNet.Identity;
 using System.Collections.Generic;
 using StackExchange.Profiling;
 using System.Transactions;
+using ExcelDataReader;
+using System.Data;
+using System;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
@@ -19,9 +22,13 @@ namespace MeuCantinhoDeEstudos3.Controllers
         // GET: Temas
         public async Task<ActionResult> Index(string search)
         {
+            var userId = User.Identity.GetUserId<int>();
+
             ViewBag.CurrentSearch = search;
 
-            var temas = db.Temas.Include(t => t.Materia);
+            var temas = db.Temas
+                        .Include(t => t.Materia)
+                        .Where(t => t.Materia.UsuarioId == userId);
 
             if (!string.IsNullOrEmpty(search))
             {
@@ -174,6 +181,66 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 db.Entry(tema).State = EntityState.Deleted;
                 await db.SaveChangesAsync();
+
+                scope.Complete();
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> ImportarExcel()
+        {
+            var userId = User.Identity.GetUserId<int>();
+            var postedFile = Request.Files[0];
+            var temas = new List<Tema>();
+
+            IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
+
+            DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
+            {
+                ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
+                {
+                    UseHeaderRow = true,
+                }
+            });
+
+            while (excelReader.Read())
+            {
+                try
+                {
+                    if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1)))
+                    {
+                        temas.Add(new Tema
+                        {
+                            MateriaId = int.Parse(excelReader.GetValue(0).ToString()),
+                            Nome = excelReader.GetString(1),
+                            DataCriacao = DateTime.Now,
+                            UsuarioCriacao = User.Identity.GetUserName(),
+                        });
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    throw new Exception();
+                }
+            }
+
+            excelReader.Close();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                try
+                {
+                    db.Temas.AddRange(temas);
+                    await db.SaveChangesAsync();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    throw new Exception();
+                }
 
                 scope.Complete();
             }

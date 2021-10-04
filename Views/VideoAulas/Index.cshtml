@@ -2,13 +2,33 @@
 
 @{
     ViewBag.Title = "Vídeoaulas";
+
+    <link rel="stylesheet" href="~/Content/VideoAula.css" />
 }
 
-<h2>Vídeoaulas</h2>
+<div class="page-header">
+    <h2>Vídeoaulas</h2>
 
-<p>
-    @Html.ActionLink("Adicionar vídeoaula", "Create")
-</p>
+    <p>Aqui você encontra as vídeoaulas.</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-12 tools">
+        <form action="/VideoAulas/Index" method="get">
+            <div class="form-inline" accesskey="">
+                <span>Filtre pela descrição</span>
+                <input type="text" class="form-control" name="search" placeholder="Vídeoaula" value="@ViewBag.CurrentSearch" />
+                <input type="submit" value="Pesquisar" class="btn btn-primary" /> |
+                @Html.ActionLink("Remover filtro", "Index")
+            </div>
+        </form>
+
+        @Html.ActionLink("Adicionar vídeoaula", "Create")
+    </div>
+</div>
+
+<br />
+
 <table class="table">
     <tr>
         <th>
