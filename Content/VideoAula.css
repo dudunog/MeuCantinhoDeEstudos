@@ -1,6 +1,12 @@
 ﻿.tools {
     display: flex;
     flex-direction: row;
-    align-items: end;
+    align-items: center;
     justify-content: space-between;
+}
+
+.tools > div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
 }

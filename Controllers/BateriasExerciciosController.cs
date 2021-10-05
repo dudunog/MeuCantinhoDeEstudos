@@ -1,10 +1,15 @@
-﻿using MeuCantinhoDeEstudos3.Extensions;
+﻿using ExcelDataReader;
+using MeuCantinhoDeEstudos3.Extensions;
 using MeuCantinhoDeEstudos3.Models;
 using Microsoft.AspNet.Identity;
+using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Transactions;
 using System.Web.Mvc;
 
 namespace MeuCantinhoDeEstudos3.Controllers
@@ -185,6 +190,75 @@ namespace MeuCantinhoDeEstudos3.Controllers
             var temas = db.Temas.Where(t => t.MateriaId == id);
 
             return Json(await temas.ToListAsync(), JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> ImportarExcel()
+        {
+            var userId = User.Identity.GetUserId<int>();
+            var postedFile = Request.Files[0];
+            var exercicios = new List<BateriaExercicio>();
+
+            IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
+
+            DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
+            {
+                ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
+                {
+                    UseHeaderRow = true,
+                }
+            });
+
+            while (excelReader.Read())
+            {
+                if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1) || excelReader.IsDBNull(2)))
+                {
+                    try
+                    {
+                        var bateriaExercicio = new BateriaExercicio()
+                        {
+                            TemaId = int.Parse(excelReader.GetValue(0).ToString()),
+                            Descricao = excelReader.GetString(1),
+                            QuantidadeExercicios = int.Parse(excelReader.GetValue(2).ToString()),
+                            QuantidadeAcertos = int.Parse(excelReader.GetValue(3).ToString()),
+                            DataCriacao = DateTime.Now,
+                            UsuarioCriacao = User.Identity.GetUserName(),
+                        };
+
+                        bateriaExercicio.CalcularAproveitamento();
+                        
+                        exercicios.Add(bateriaExercicio);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        throw new Exception();
+                    }
+                }
+            }
+
+            excelReader.Close();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                try
+                {
+                    //db.GetObjectContext().ObjectStateManager.ChangeObjectState(exercicios, EntityState.Added);
+                    //db.BulkInsert(exercicios);
+
+                    db.Atividades.AddRange(exercicios);
+                    await db.SaveChangesAsync();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    throw new Exception();
+                }
+
+                scope.Complete();
+            }
+
+            return RedirectToAction("Index");
         }
 
         protected override void Dispose(bool disposing)

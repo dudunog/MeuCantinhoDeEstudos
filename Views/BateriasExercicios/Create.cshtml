@@ -2,6 +2,9 @@
 
 @{
     ViewBag.Title = "Adicionar";
+
+    <link href="~/Content/jquery.fileupload.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Content/BateriaExercicio.css" />
 }
 
 <div class="page-header">
@@ -14,64 +17,109 @@
 {
     @Html.AntiForgeryToken()
 
-<div class="form-horizontal">
-    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-    <div class="form-group">
-        @Html.LabelFor(model => model.Materia.MateriaId, "Matéria", htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.DropDownList("MateriaId", null, "Selecione", htmlAttributes: new { @class = "form-control" })
-            @Html.ValidationMessageFor(model => model.Materia.MateriaId, "", new { @class = "text-danger" })
+    <div class="form-horizontal">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.Materia.MateriaId, "Matéria", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("MateriaId", null, "Selecione", htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Materia.MateriaId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Tema.TemaId, "Tema", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("TemaId", null, "Selecione", htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Tema.TemaId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Descricao, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextAreaFor(model => model.Descricao, new { @class = "form-control col-md-4", @placeholder = "Descreva o seu estudo para orientar suas revisões. (Ex: Livro Constitucional - pg. 57-69)", @rows = 4, @cols = 4 })
+                @Html.ValidationMessageFor(model => model.Descricao, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.QuantidadeExercicios, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.QuantidadeExercicios, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.QuantidadeExercicios, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.QuantidadeAcertos, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.QuantidadeAcertos, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.QuantidadeAcertos, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
         </div>
     </div>
+}
 
-    <div class="form-group">
-        @Html.LabelFor(model => model.Tema.TemaId, "Tema", htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.DropDownList("TemaId", null, "Selecione", htmlAttributes: new { @class = "form-control" })
-            @Html.ValidationMessageFor(model => model.Tema.TemaId, "", new { @class = "text-danger" })
-        </div>
-    </div>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Importar exercícios</h4>
+            </div>
 
-    <div class="form-group">
-        @Html.LabelFor(model => model.Descricao, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.TextAreaFor(model => model.Descricao, new { @class = "form-control col-md-4", @placeholder = "Descreva o seu estudo para orientar suas revisões. (Ex: Livro Constitucional - pg. 57-69)", @rows = 4, @cols = 4 })
-            @Html.ValidationMessageFor(model => model.Descricao, "", new { @class = "text-danger" })
-        </div>
-    </div>
+            <div class="progress" style="height: 1px; margin-bottom: 5px;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    <span class="sr-only">0% complete</span>
+                </div>
+            </div>
 
-    <div class="form-group">
-        @Html.LabelFor(model => model.QuantidadeExercicios, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.QuantidadeExercicios, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.QuantidadeExercicios, "", new { @class = "text-danger" })
-        </div>
-    </div>
+            <form id="fileupload" action="ImportarExcel" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <span class="text-muted">Aqui você pode importar arquivo(s) excel contendo exercício(s).</span>
 
-    <div class="form-group">
-        @Html.LabelFor(model => model.QuantidadeAcertos, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.QuantidadeAcertos, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.QuantidadeAcertos, "", new { @class = "text-danger" })
-        </div>
-    </div>
+                    @*<span class="btn btn-default fileinput-button">
+                        <i class="glyphicon glyphicon-plus"></i>
+                        <span>Adicionar arquivo(s)</span>
+                        <input type="file" id="inputFileUpload" multiple />
+                    </span>*@
 
-    <div class="form-group">
-        <div class="col-md-offset-2 col-md-10">
-            <input type="submit" value="Create" class="btn btn-default" />
+                    <div id="response"></div>
+
+                </div>
+                <div class="modal-footer">
+                    <a href="#myModal" data-dismiss="modal" class="btn btn-default">Fechar</a>
+                    @*<button type="submit" id="btnImportar" class="btn btn-primary">Importar</button>*@
+                    <span class="btn btn-primary fileinput-button">
+                        <span>Importar arquivo(s)</span>
+                        <input type="file" id="inputFileUpload" multiple />
+                    </span>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-}
 
-<div>
+<div class="tools">
     @Html.ActionLink("Voltar", "Index")
+    <a data-toggle="modal" href="#myModal">Importar aquivo excel</a>
 </div>
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
+    <script src="~/Scripts/bootstrap-modal.js"></script>
+    <script src="~/Scripts/jquery.ui.widget.js"></script>
+    <script src="~/Scripts/jquery.fileupload.js"></script>
 
     <script>
+        //Busca as matérias pelos temas
         $("#MateriaId").change(function () {
             var optionValue = $(this).find(":selected").val();
 
@@ -87,6 +135,23 @@
                     }
                 });
             }
+        });
+
+        //Faz o upload do arquivo excel
+        $(document).ready(function () {
+            $('#inputFileUpload').fileupload({
+                dataType: 'json',
+                url: 'ImportarExcel',
+                //autoUpload: true,
+                add: function (e, data) {
+                    data.submit();
+                    $("#response").append("<br />");
+                    $("#response").append("<div class='alert alert-success' style='margin-bottom: 5px;'><p>Arquivo(s) importado(s) com sucesso. Você pode fechar este modal.</p></div>");
+                }
+            }).on('fileuploadprogressall', function (e, data) {
+                var progress = parseInt(data.loaded / data.total * 100, 10);
+                $('.progress .progress-bar').css('width', progress + '%');
+            });
         });
     </script>
 }

@@ -1,11 +1,14 @@
-﻿using MeuCantinhoDeEstudos3.Models;
+﻿using ExcelDataReader;
+using MeuCantinhoDeEstudos3.Models;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Transactions;
 using System.Web;
 using System.Web.Mvc;
 
@@ -167,6 +170,52 @@ namespace MeuCantinhoDeEstudos3.Controllers
             VideoAula videoAula = await db.VideoAulas.FindAsync(id);
             db.VideoAulas.Remove(videoAula);
             await db.SaveChangesAsync();
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> ImportarExcel()
+        {
+            var userId = User.Identity.GetUserId<int>();
+            var postedFile = Request.Files[0];
+            var videoAulas = new List<VideoAula>();
+
+            IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
+
+            DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
+            {
+                ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
+                {
+                    UseHeaderRow = true,
+                }
+            });
+
+            while (excelReader.Read())
+            {
+                if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1) || excelReader.IsDBNull(2)))
+                {
+                    videoAulas.Add(new VideoAula
+                    {
+                        TemaId = int.Parse(excelReader.GetValue(0).ToString()),
+                        Descricao = excelReader.GetString(1),
+                        LinkVideo = excelReader.GetString(2),
+                        DataCriacao = DateTime.Now,
+                        UsuarioCriacao = User.Identity.GetUserName(),
+                    });
+                }
+            }
+
+            excelReader.Close();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                //db.BulkInsert(videoAulas);
+                db.Atividades.AddRange(videoAulas);
+                await db.SaveChangesAsync();
+
+                scope.Complete();
+            }
+
             return RedirectToAction("Index");
         }
 

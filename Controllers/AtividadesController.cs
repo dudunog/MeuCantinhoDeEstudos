@@ -1,12 +1,14 @@
-﻿using MeuCantinhoDeEstudos3.Models;
+﻿using ExcelDataReader;
+using MeuCantinhoDeEstudos3.Models;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using System.Web;
+using System.Transactions;
 using System.Web.Mvc;
 
 namespace MeuCantinhoDeEstudos3.Controllers
@@ -167,6 +169,51 @@ namespace MeuCantinhoDeEstudos3.Controllers
             Atividade atividade = await db.Atividades.FindAsync(id);
             db.Atividades.Remove(atividade);
             await db.SaveChangesAsync();
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> ImportarExcel()
+        {
+            var userId = User.Identity.GetUserId<int>();
+            var postedFile = Request.Files[0];
+            var atividades = new List<Atividade>();
+
+            IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
+
+            DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
+            {
+                ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
+                {
+                    UseHeaderRow = true,
+                }
+            });
+
+            while (excelReader.Read())
+            {
+                if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1)))
+                {
+                    atividades.Add(new Atividade
+                    {
+                        TemaId = int.Parse(excelReader.GetValue(0).ToString()),
+                        Descricao = excelReader.GetString(1),
+                        DataCriacao = DateTime.Now,
+                        UsuarioCriacao = User.Identity.GetUserName(),
+                    });
+                }
+            }
+
+            excelReader.Close();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                //db.BulkInsert(atividades);
+                db.Atividades.AddRange(atividades);
+                await db.SaveChangesAsync();
+
+                scope.Complete();
+            }
+
             return RedirectToAction("Index");
         }
 
