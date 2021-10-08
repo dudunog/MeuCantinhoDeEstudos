@@ -1,9 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Http.Results;
 using System.Web.Mvc;
 
 namespace MeuCantinhoDeEstudos3.Extensions
@@ -12,8 +8,8 @@ namespace MeuCantinhoDeEstudos3.Extensions
     {
         private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
         {
-            Formatting = Newtonsoft.Json.Formatting.Indented,
-            ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            Formatting = Formatting.Indented,
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
         };
 
         public override void ExecuteResult(ControllerContext context)

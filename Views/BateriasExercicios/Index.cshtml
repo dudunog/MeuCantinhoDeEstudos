@@ -29,9 +29,11 @@
             }
             else
             {
-                <p>Nenhuma atividade cadastrada</p>
+                <p>Nenhum exercício cadastrado</p>
             }
+
             @Html.ActionLink("Adicionar exercício", "Create")
+            @Html.ActionLink("Gerar relatório", "GerarRelatorioExcel", new { @search = ViewBag.CurrentSearch })
         </div>
     </div>
 </div>

@@ -19,9 +19,11 @@ namespace MeuCantinhoDeEstudos3.Models
         [DisplayName("Tema")]
         public string Nome { get; set; }
 
+        [JsonIgnore]
         [ForeignKey(nameof(MateriaId))]
         public virtual Materia Materia { get; set; }
 
+        [JsonIgnore]
         public virtual ICollection<Atividade> Atividades { get; set; }
 
         [DisplayName("Criado em")]

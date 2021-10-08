@@ -11,6 +11,8 @@ using System.Transactions;
 using ExcelDataReader;
 using System.Data;
 using System;
+using OfficeOpenXml;
+using System.Web;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
@@ -47,8 +49,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
             }
 
             Tema tema = db.Temas
-                          .Include(t => t.Materia)
-                          .SingleOrDefault(t => t.TemaId == id);
+                        .Include(t => t.Materia)
+                        .SingleOrDefault(t => t.TemaId == id);
 
             if (tema == null)
             {
@@ -246,6 +248,52 @@ namespace MeuCantinhoDeEstudos3.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public FileResult GerarRelatorioExcel(string search)
+        {
+            var userId = User.Identity.GetUserId<int>();
+
+            using (var excelPackage = new ExcelPackage())
+            {
+                excelPackage.Workbook.Properties.Author = "Meu Cantinho de Estudos";
+                excelPackage.Workbook.Properties.Title = "Relatório-Temas";
+
+                //Criação da planilha
+                var sheet = excelPackage.Workbook.Worksheets.Add("Temas");
+
+                //Títulos
+                var i = 1;
+                var titulos = new String[] { "Tema", "Matéria" };
+                foreach (var titulo in titulos)
+                {
+                    sheet.Cells[1, i++].Value = titulo;
+                }
+
+                var temas = db.Temas
+                            .Include(t => t.Materia)
+                            .Where(t => t.Materia.UsuarioId == userId);
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    temas = temas.Where(t => t.Nome.ToUpper().Contains(search.ToUpper()));
+                }
+
+                //Valores
+                var r = 2;
+                foreach (var tema in temas)
+                {
+                    sheet.Cells[r, 1].Value = tema.Nome;
+                    sheet.Cells[r++, 2].Value = tema.Materia.Nome;
+                }
+
+                string fileName = $"{excelPackage.Workbook.Properties.Title}.xlsx";
+                var contentType = MimeMapping.GetMimeMapping(fileName);
+                var fileData = excelPackage.GetAsByteArray();
+
+                return File(fileData, contentType, fileName);
+            }
         }
 
         protected override void Dispose(bool disposing)

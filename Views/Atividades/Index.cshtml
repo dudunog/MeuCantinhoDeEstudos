@@ -32,7 +32,9 @@
             {
                 <p>Nenhuma atividade cadastrada</p>
             }
+
             @Html.ActionLink("Adicionar atividade", "Create")
+            @Html.ActionLink("Gerar relatório", "GerarRelatorioExcel", new { @search = ViewBag.CurrentSearch })
         </div>
     </div>
 </div>

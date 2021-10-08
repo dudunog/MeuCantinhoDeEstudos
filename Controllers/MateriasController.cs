@@ -11,6 +11,9 @@ using System;
 using ExcelDataReader;
 using System.Data;
 using System.Collections.Generic;
+using OfficeOpenXml;
+using System.IO;
+using System.Web;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
@@ -74,7 +77,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             if (ModelState.IsValid)
             {
-                materia.CorIdentificacao = RemovePrefix(materia.CorIdentificacao);
+                if (!string.IsNullOrEmpty(materia.CorIdentificacao))
+                    materia.CorIdentificacao = RemovePrefix(materia.CorIdentificacao);
 
                 materia.UsuarioId = User.Identity.GetUserId<int>();
 
@@ -119,7 +123,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             if (ModelState.IsValid)
             {
-                materia.CorIdentificacao = RemovePrefix(materia.CorIdentificacao);
+                if (!string.IsNullOrEmpty(materia.CorIdentificacao))
+                    materia.CorIdentificacao = RemovePrefix(materia.CorIdentificacao);
                 
                 materia.UsuarioId = User.Identity.GetUserId<int>();
 
@@ -230,7 +235,52 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             var arquivo = Report<Materia>.Create(db.Materias.Include(m => m.Usuario).ToList());
 
-            return File(arquivo, "application/pdf", "Bairros.pdf");
+            return File(arquivo, "application/pdf", "Teste.pdf");
+        }
+
+        [HttpGet]
+        public FileResult GerarRelatorioExcel(string search)
+        {
+            var userId = User.Identity.GetUserId<int>();
+
+            using (var excelPackage = new ExcelPackage())
+            {
+                excelPackage.Workbook.Properties.Author = "Meu Cantinho de Estudos";
+                excelPackage.Workbook.Properties.Title = "Relatório-Matérias";
+
+                //Criação da planilha
+                var sheet = excelPackage.Workbook.Worksheets.Add("Matérias");
+
+                //Títulos
+                var i = 1;
+                var titulos = new String[] { "Matéria", "Cor de Identificação" };
+                foreach (var titulo in titulos)
+                {
+                    sheet.Cells[1, i++].Value = titulo;
+                }
+
+                var materias = db.Materias
+                               .Where(m => m.UsuarioId == userId);
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    materias = materias.Where(t => t.Nome.ToUpper().Contains(search.ToUpper()));
+                }
+
+                //Valores
+                var r = 2;
+                foreach (var materia in materias)
+                {
+                    sheet.Cells[r, 1].Value = materia.Nome;
+                    sheet.Cells[r++, 2].Value = materia.CorIdentificacao;
+                }
+
+                string fileName = $"{excelPackage.Workbook.Properties.Title}.xlsx";
+                var contentType = MimeMapping.GetMimeMapping(fileName);
+                var fileData = excelPackage.GetAsByteArray();
+
+                return File(fileData, contentType, fileName);
+            }
         }
 
         protected override void Dispose(bool disposing)

@@ -9,7 +9,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MeuCantinhoDeEstudos3.Models
 {
-    [DelimitedRecord(";")]
     public class Materia : IEntidadeAuditada<MateriaAuditoria>
     {
         [Key]

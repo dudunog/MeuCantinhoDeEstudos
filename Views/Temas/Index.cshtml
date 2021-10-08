@@ -30,9 +30,11 @@
             }
             else
             {
-                <p>Nenhuma atividade cadastrada</p>
+                <p>Nenhum tema cadastrado</p>
             }
+
             @Html.ActionLink("Adicionar tema", "Create")
+            @Html.ActionLink("Gerar relatório", "GerarRelatorioExcel", new { @search = ViewBag.CurrentSearch })
         </div>
     </div>
 </div>

@@ -2,6 +2,7 @@
 using MeuCantinhoDeEstudos3.Extensions;
 using MeuCantinhoDeEstudos3.Models;
 using Microsoft.AspNet.Identity;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,6 +11,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Transactions;
+using System.Web;
 using System.Web.Mvc;
 
 namespace MeuCantinhoDeEstudos3.Controllers
@@ -185,9 +187,12 @@ namespace MeuCantinhoDeEstudos3.Controllers
         }
 
         // GET: BateriaExercicios/SelecionarPorMateria/5
+        [HttpGet]
         public async Task<JsonResult> SelecionarPorMateria(int id)
         {
-            var temas = db.Temas.Where(t => t.MateriaId == id);
+            var temas = db.Temas
+                        .Include(t => t.Materia)
+                        .Where(t => t.Materia.MateriaId == id);
 
             return Json(await temas.ToListAsync(), JsonRequestBehavior.AllowGet);
         }
@@ -259,6 +264,59 @@ namespace MeuCantinhoDeEstudos3.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public FileResult GerarRelatorioExcel(string search)
+        {
+            var userId = User.Identity.GetUserId<int>();
+
+            using (var excelPackage = new ExcelPackage())
+            {
+                excelPackage.Workbook.Properties.Author = "Meu Cantinho de Estudos";
+                excelPackage.Workbook.Properties.Title = "Relatório-Exercícios";
+
+                //Criação da planilha
+                var sheet = excelPackage.Workbook.Worksheets.Add("Exercícios");
+
+                //Títulos
+                var i = 1;
+                var titulos = new String[] { "Descrição", "Quantidade de exercícios", "Quantidade de acertos", "Aproveitamento", "Matéria", "Tema" };
+                foreach (var titulo in titulos)
+                {
+                    sheet.Cells[1, i++].Value = titulo;
+                }
+
+                var bateriasExercicios = db.BateriasExercicios
+                                .Include(a => a.Tema.Materia)
+                                .Where(a => a.Tema.Materia.UsuarioId == userId);
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    bateriasExercicios = bateriasExercicios.Where(e => e.Descricao.ToUpper().Contains(search.ToUpper()));
+                }
+
+                //Valores
+                var r = 2;
+                foreach (var exercicio in bateriasExercicios)
+                {
+                    sheet.Cells[r, 1].Value = exercicio.Descricao;
+                    sheet.Cells[r, 2].Value = exercicio.QuantidadeExercicios;
+                    sheet.Cells[r, 3].Value = exercicio.QuantidadeAcertos;
+
+                    sheet.Cells[r, 4].Style.Numberformat.Format = "0.00%";
+                    sheet.Cells[r, 4].Value = exercicio.Aproveitamento/100;
+                    
+                    sheet.Cells[r, 5].Value = exercicio.Tema.Materia.Nome;
+                    sheet.Cells[r++, 6].Value = exercicio.Tema.Nome;
+                }
+
+                string fileName = $"{excelPackage.Workbook.Properties.Title}.xlsx";
+                var contentType = MimeMapping.GetMimeMapping(fileName);
+                var fileData = excelPackage.GetAsByteArray();
+
+                return File(fileData, contentType, fileName);
+            }
         }
 
         protected override void Dispose(bool disposing)

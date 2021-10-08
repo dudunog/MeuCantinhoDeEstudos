@@ -30,9 +30,11 @@
             }
             else
             {
-                <p>Nenhuma atividade cadastrada</p>
+                <p>Nenhuma matéria cadastrada</p>
             }
+
             @Html.ActionLink("Adicionar matéria", "Create")
+            @Html.ActionLink("Gerar relatório", "GerarRelatorioExcel", new { @search = ViewBag.CurrentSearch })
         </div>
     </div>
 </div>
@@ -68,5 +70,3 @@
         </tr>
     }
 </table>
-
-@Html.ActionLink("Gerar relatório", "GerarRelatorioPDF")

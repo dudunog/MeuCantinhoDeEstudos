@@ -1,6 +1,7 @@
 ﻿using ExcelDataReader;
 using MeuCantinhoDeEstudos3.Models;
 using Microsoft.AspNet.Identity;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Transactions;
+using System.Web;
 using System.Web.Mvc;
 
 namespace MeuCantinhoDeEstudos3.Controllers
@@ -27,7 +29,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
             var atividades = db.Atividades
                            .Include(a => a.Tema.Materia)
-                           .Where(m => m.Tema.Materia.UsuarioId == userId);
+                           .Where(a => a.Tema.Materia.UsuarioId == userId);
 
             if (!string.IsNullOrEmpty(search))
             {
@@ -215,6 +217,53 @@ namespace MeuCantinhoDeEstudos3.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public FileResult GerarRelatorioExcel(string search)
+        {
+            var userId = User.Identity.GetUserId<int>();
+
+            using (var excelPackage = new ExcelPackage())
+            {
+                excelPackage.Workbook.Properties.Author = "Meu Cantinho de Estudos";
+                excelPackage.Workbook.Properties.Title = "Relatório-Atividades";
+
+                //Criação da planilha
+                var sheet = excelPackage.Workbook.Worksheets.Add("Atividades");
+
+                //Títulos
+                var i = 1;
+                var titulos = new String[] { "Descrição", "Matéria", "Tema" };
+                foreach (var titulo in titulos)
+                {
+                    sheet.Cells[1, i++].Value = titulo;
+                }
+
+                var atividades = db.Atividades
+                                .Include(a => a.Tema)
+                                .Where(a => a.Tema.Materia.UsuarioId == userId);
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    atividades = atividades.Where(a => a.Descricao.ToUpper().Contains(search.ToUpper()));
+                }
+
+                //Valores
+                var r = 2;
+                foreach (var atividade in atividades)
+                {
+                    sheet.Cells[r, 1].Value = atividade.Descricao;
+                    sheet.Cells[r, 2].Value = atividade.Tema.Materia.Nome;
+                    sheet.Cells[r++, 3].Value = atividade.Tema.Nome;
+                }
+
+                string fileName = $"{excelPackage.Workbook.Properties.Title}.xlsx";
+                var contentType = MimeMapping.GetMimeMapping(fileName);
+                var fileData = excelPackage.GetAsByteArray();
+
+                return File(fileData, contentType, fileName);
+            }
         }
 
         protected override void Dispose(bool disposing)
