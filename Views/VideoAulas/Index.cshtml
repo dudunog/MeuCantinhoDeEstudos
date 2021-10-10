@@ -33,8 +33,11 @@
                 <p>Nenhuma vídeoaula cadastrada</p>
             }
 
-            @Html.ActionLink("Adicionar vídeoaula", "Create")
-            @Html.ActionLink("Gerar relatório", "GerarRelatorioExcel", new { @search = ViewBag.CurrentSearch })
+            <div>
+                @Html.ActionLink("Adicionar vídeoaula", "Create") |
+                @Html.ActionLink("Gerar Excel", "GerarRelatorioExcel", new { @search = ViewBag.CurrentSearch }) |
+                @Html.ActionLink("Gerar PDF", "GerarRelatorioPDF", new { @search = ViewBag.CurrentSearch })
+            </div>
         </div>
     </div>
 </div>

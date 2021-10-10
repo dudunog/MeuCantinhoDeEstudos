@@ -46,6 +46,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.6.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <HintPath>packages\BouncyCastle.1.8.6.1\lib\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>packages\EntityFramework.6.3.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
@@ -72,6 +75,12 @@
     </Reference>
     <Reference Include="FileHelpers, Version=3.5.0.0, Culture=neutral, PublicKeyToken=3e0c08d59cc3d657, processorArchitecture=MSIL">
       <HintPath>packages\FileHelpers.3.5.0\lib\net45\FileHelpers.dll</HintPath>
+    </Reference>
+    <Reference Include="itextsharp, Version=5.5.7.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
+      <HintPath>packages\iTextSharp.5.5.7\lib\itextsharp.dll</HintPath>
+    </Reference>
+    <Reference Include="itextsharp.xmlworker, Version=5.5.7.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
+      <HintPath>packages\itextsharp.xmlworker.5.5.7\lib\itextsharp.xmlworker.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AspNet.Identity.EntityFramework, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.Identity.EntityFramework.2.2.3\lib\net45\Microsoft.AspNet.Identity.EntityFramework.dll</HintPath>
@@ -108,8 +117,11 @@
       <HintPath>packages\MiniProfiler.Shared.4.2.22\lib\net461\MiniProfiler.Shared.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
-    <Reference Include="Reports, Version=0.9.7114.24558, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Report.NET.0.9.8\lib\net48\Reports.dll</HintPath>
+    <Reference Include="RazorPDF, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\RazorPDF2.2.0.0\lib\net40\RazorPDF.dll</HintPath>
+    </Reference>
+    <Reference Include="RazorPDF.Legacy, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\RazorPDF2.2.0.0\lib\net40\RazorPDF.Legacy.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.2.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -278,8 +290,6 @@
     <Compile Include="Models\Interfaces\IEntidadeAuditada.cs" />
     <Compile Include="Models\Materia.cs" />
     <Compile Include="Models\Auditoria\MateriaAuditoria.cs" />
-    <Compile Include="Models\PDF\ColunaRelatorioAttribute.cs" />
-    <Compile Include="Models\PDF\Report.cs" />
     <Compile Include="Models\Tema.cs" />
     <Compile Include="Models\Auditoria\TemaAuditoria.cs" />
     <Compile Include="Models\UsuarioInformacoes.cs" />
@@ -460,6 +470,12 @@
     <Content Include="Views\VideoAulas\Index.cshtml" />
     <Content Include="Views\UsuarioInformacoes\Edit.cshtml" />
     <Content Include="Views\UsuarioInformacoes\Create.cshtml" />
+    <Content Include="Views\Shared\_PdfLayout.cshtml" />
+    <Content Include="Views\Materias\MateriasReport.cshtml" />
+    <Content Include="Views\Temas\TemasReport.cshtml" />
+    <Content Include="Views\Atividades\AtividadesReport.cshtml" />
+    <Content Include="Views\VideoAulas\VideoAulasReport.cshtml" />
+    <Content Include="Views\BateriasExercicios\BateriasExerciciosReport.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />

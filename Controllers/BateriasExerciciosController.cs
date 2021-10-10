@@ -3,6 +3,7 @@ using MeuCantinhoDeEstudos3.Extensions;
 using MeuCantinhoDeEstudos3.Models;
 using Microsoft.AspNet.Identity;
 using OfficeOpenXml;
+using RazorPDF;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -202,7 +203,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             var userId = User.Identity.GetUserId<int>();
             var postedFile = Request.Files[0];
-            var exercicios = new List<BateriaExercicio>();
+            List<BateriaExercicio> exercicios = new List<BateriaExercicio>();
 
             IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
 
@@ -248,11 +249,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 try
                 {
-                    //db.GetObjectContext().ObjectStateManager.ChangeObjectState(exercicios, EntityState.Added);
-                    //db.BulkInsert(exercicios);
-
-                    db.Atividades.AddRange(exercicios);
-                    await db.SaveChangesAsync();
+                    db.BateriasExercicios.AddRange(exercicios);
+                    await db.BulkSaveChangesAsync();
                 }
                 catch (Exception e)
                 {
@@ -288,8 +286,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 }
 
                 var bateriasExercicios = db.BateriasExercicios
-                                .Include(a => a.Tema.Materia)
-                                .Where(a => a.Tema.Materia.UsuarioId == userId);
+                                         .Include(a => a.Tema.Materia)
+                                         .Where(a => a.Tema.Materia.UsuarioId == userId);
 
                 if (!string.IsNullOrEmpty(search))
                 {
@@ -317,6 +315,27 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
                 return File(fileData, contentType, fileName);
             }
+        }
+
+        [HttpGet]
+        public ActionResult GerarRelatorioPDF(string search)
+        {
+            //RazorPDF2
+            var userId = User.Identity.GetUserId<int>();
+
+            var bateriasExercicios = db.BateriasExercicios
+                                     .Include(a => a.Tema.Materia)
+                                     .Where(a => a.Tema.Materia.UsuarioId == userId);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                bateriasExercicios = bateriasExercicios.Where(e => e.Descricao.ToUpper().Contains(search.ToUpper()));
+            }
+
+            return new PdfActionResult("BateriasExerciciosReport", bateriasExercicios.ToList())
+            {
+                FileDownloadName = "Relatório-Exercícios.pdf"
+            };
         }
 
         protected override void Dispose(bool disposing)

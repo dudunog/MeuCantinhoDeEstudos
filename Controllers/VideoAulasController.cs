@@ -2,6 +2,7 @@
 using MeuCantinhoDeEstudos3.Models;
 using Microsoft.AspNet.Identity;
 using OfficeOpenXml;
+using RazorPDF;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -210,9 +211,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                //db.BulkInsert(videoAulas);
-                db.Atividades.AddRange(videoAulas);
-                await db.SaveChangesAsync();
+                db.VideoAulas.AddRange(videoAulas);
+                await db.BulkSaveChangesAsync();
 
                 scope.Complete();
             }
@@ -266,6 +266,27 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
                 return File(fileData, contentType, fileName);
             }
+        }
+
+        [HttpGet]
+        public ActionResult GerarRelatorioPDF(string search)
+        {
+            //RazorPDF2
+            var userId = User.Identity.GetUserId<int>();
+
+            var videoaulas = db.VideoAulas
+                                .Include(a => a.Tema.Materia)
+                                .Where(a => a.Tema.Materia.UsuarioId == userId);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                videoaulas = videoaulas.Where(v => v.Descricao.ToUpper().Contains(search.ToUpper()));
+            }
+
+            return new PdfActionResult("VideoAulasReport", videoaulas.ToList())
+            {
+                FileDownloadName = "Relatório-Vídeoaulas.pdf"
+            };
         }
 
         protected override void Dispose(bool disposing)

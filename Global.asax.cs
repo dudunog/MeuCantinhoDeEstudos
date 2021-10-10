@@ -30,11 +30,6 @@ namespace MeuCantinhoDeEstudos3
             auditConfiguration.IncludeRelationships = true;
             auditConfiguration.LoadRelationships = true;
             auditConfiguration.DefaultAuditable = true;
-
-            //auditConfiguration.IsAuditable<Usuario>();
-
-            //auditConfiguration.IsAuditable<Usuario>()
-            //    .DisplayMember(t => t.UsuarioCriacao);
         }
 
         protected void Application_BeginRequest()

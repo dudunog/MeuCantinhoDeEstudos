@@ -1,0 +1,35 @@
+﻿@model List<MeuCantinhoDeEstudos3.Models.Materia>
+
+@{
+    Layout = null;
+
+    <link rel="stylesheet" href="~/Content/Materia.css" />
+}
+
+<div style="text-align: right;">
+    <p style="float:right;">@DateTime.Now</p>
+</div>
+
+<h2 style="margin-top:-33px;">Meu Cantinho de Estudos - Matérias</h2>
+<hr style="color:#333333;" />
+
+<div>
+    <table width="100%" style="margin-top: 15px;">
+        <thead>
+            <tr style="font-size: 16px;">
+                <td><b>Matéria</b></td>
+                <td><b>Cor de Identificação</b></td>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr style="font-size: 14px;">
+                    <td>@item.Nome</td>
+                    <td>#@item.CorIdentificacao</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

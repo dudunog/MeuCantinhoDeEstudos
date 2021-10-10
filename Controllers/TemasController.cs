@@ -6,13 +6,13 @@ using MeuCantinhoDeEstudos3.Models;
 using System.Linq;
 using Microsoft.AspNet.Identity;
 using System.Collections.Generic;
-using StackExchange.Profiling;
 using System.Transactions;
 using ExcelDataReader;
 using System.Data;
 using System;
 using OfficeOpenXml;
 using System.Web;
+using RazorPDF;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
@@ -195,7 +195,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             var userId = User.Identity.GetUserId<int>();
             var postedFile = Request.Files[0];
-            var temas = new List<Tema>();
+            List<Tema> temas = new List<Tema>();
 
             IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
 
@@ -236,7 +236,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 try
                 {
                     db.Temas.AddRange(temas);
-                    await db.SaveChangesAsync();
+                    await db.BulkSaveChangesAsync();
                 }
                 catch (Exception e)
                 {
@@ -294,6 +294,27 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
                 return File(fileData, contentType, fileName);
             }
+        }
+
+        [HttpGet]
+        public ActionResult GerarRelatorioPDF(string search)
+        {
+            //RazorPDF2
+            var userId = User.Identity.GetUserId<int>();
+
+            var temas = db.Temas
+                            .Include(t => t.Materia)
+                            .Where(t => t.Materia.UsuarioId == userId);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                temas = temas.Where(t => t.Nome.ToUpper().Contains(search.ToUpper()));
+            }
+
+            return new PdfActionResult("TemasReport", temas.ToList())
+            {
+                FileDownloadName = "Relatório-Temas.pdf"
+            };
         }
 
         protected override void Dispose(bool disposing)

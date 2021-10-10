@@ -2,6 +2,7 @@
 using MeuCantinhoDeEstudos3.Models;
 using Microsoft.AspNet.Identity;
 using OfficeOpenXml;
+using RazorPDF;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -209,9 +210,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                //db.BulkInsert(atividades);
                 db.Atividades.AddRange(atividades);
-                await db.SaveChangesAsync();
+                await db.BulkSaveChangesAsync();
 
                 scope.Complete();
             }
@@ -241,7 +241,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 }
 
                 var atividades = db.Atividades
-                                .Include(a => a.Tema)
+                                .Include(a => a.Tema.Materia)
                                 .Where(a => a.Tema.Materia.UsuarioId == userId);
 
                 if (!string.IsNullOrEmpty(search))
@@ -264,6 +264,26 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
                 return File(fileData, contentType, fileName);
             }
+        }
+
+        public ActionResult GerarRelatorioPDF(string search)
+        {
+            //RazorPDF2
+            var userId = User.Identity.GetUserId<int>();
+
+            var atividades = db.Atividades
+                             .Include(a => a.Tema.Materia)
+                             .Where(a => a.Tema.Materia.UsuarioId == userId);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                atividades = atividades.Where(a => a.Descricao.ToUpper().Contains(search.ToUpper()));
+            }
+
+            return new PdfActionResult("AtividadesReport", atividades.ToList())
+            {
+                FileDownloadName = "Relatório-Atividades.pdf"
+            };
         }
 
         protected override void Dispose(bool disposing)

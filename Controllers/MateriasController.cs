@@ -6,14 +6,13 @@ using MeuCantinhoDeEstudos3.Models;
 using Microsoft.AspNet.Identity;
 using System.Linq;
 using System.Transactions;
-using MeuCantinhoDeEstudos3.Models.PDF;
 using System;
 using ExcelDataReader;
 using System.Data;
 using System.Collections.Generic;
 using OfficeOpenXml;
-using System.IO;
 using System.Web;
+using RazorPDF;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
@@ -222,20 +221,12 @@ namespace MeuCantinhoDeEstudos3.Controllers
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 db.BulkInsert(materias);
-                await db.SaveChangesAsync();
+                await db.BulkSaveChangesAsync();
 
                 scope.Complete();
             }
 
             return RedirectToAction("Index");
-        }
-
-        [HttpGet]
-        public async Task<FileResult> GerarRelatorioPDF([Bind(Include = "UsuarioId,Nome,CorIdentificacao")] Materia materia)
-        {
-            var arquivo = Report<Materia>.Create(db.Materias.Include(m => m.Usuario).ToList());
-
-            return File(arquivo, "application/pdf", "Teste.pdf");
         }
 
         [HttpGet]
@@ -260,11 +251,12 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 }
 
                 var materias = db.Materias
+                               .Include(m => m.Usuario)
                                .Where(m => m.UsuarioId == userId);
 
                 if (!string.IsNullOrEmpty(search))
                 {
-                    materias = materias.Where(t => t.Nome.ToUpper().Contains(search.ToUpper()));
+                    materias = materias.Where(m => m.Nome.ToUpper().Contains(search.ToUpper()));
                 }
 
                 //Valores
@@ -281,6 +273,27 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
                 return File(fileData, contentType, fileName);
             }
+        }
+
+        [HttpGet]
+        public ActionResult GerarRelatorioPDF(string search)
+        {
+            //RazorPDF2
+            var userId = User.Identity.GetUserId<int>();
+
+            var materias = db.Materias
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                materias = materias.Where(m => m.Nome.ToUpper().Contains(search.ToUpper()));
+            }
+
+            return new PdfActionResult("MateriasReport", materias.ToList())
+            {
+                FileDownloadName = "Relatório-Matérias.pdf"
+            };
         }
 
         protected override void Dispose(bool disposing)

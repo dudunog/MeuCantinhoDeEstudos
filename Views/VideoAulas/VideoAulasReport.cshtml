@@ -1,0 +1,39 @@
+﻿@model List<MeuCantinhoDeEstudos3.Models.VideoAula>
+
+@{
+    Layout = null;
+
+    <link rel="stylesheet" href="~/Content/VideoAula.css" />
+}
+
+<div style="text-align: right;">
+    <p style="float:right;">@DateTime.Now</p>
+</div>
+
+<h2 style="margin-top:-33px;">Meu Cantinho de Estudos - Videoaulas</h2>
+<hr style="color:#333333;" />
+
+<div>
+    <table width="100%" style="margin-top: 15px;">
+        <thead>
+            <tr style="font-size: 16px;">
+                <td><b>Descrição</b></td>
+                <td><b>Link do vídeo</b></td>
+                <td><b>Tema</b></td>
+                <td><b>Matéria</b></td>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr style="font-size: 14px;">
+                    <td>@item.Descricao</td>
+                    <td>@item.LinkVideo</td>
+                    <td>@item.Tema.Nome</td>
+                    <td>@item.Tema.Materia.Nome</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
