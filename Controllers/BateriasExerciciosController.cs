@@ -1,6 +1,7 @@
 ﻿using ExcelDataReader;
 using MeuCantinhoDeEstudos3.Extensions;
 using MeuCantinhoDeEstudos3.Models;
+using MeuCantinhoDeEstudos3.ViewModels;
 using Microsoft.AspNet.Identity;
 using OfficeOpenXml;
 using RazorPDF;
@@ -78,27 +79,27 @@ namespace MeuCantinhoDeEstudos3.Controllers
         // POST: BateriaExercicios/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create([Bind(Include = "TemaId,Descricao,QuantidadeExercicios,QuantidadeAcertos")] BateriaExercicio bateriaExercicio)
+        public async Task<ActionResult> Create([Bind(Include = "TemaId,Descricao,QuantidadeExercicios,QuantidadeAcertos")] BateriaExercicioViewModel bateriaExercicio)
         {
             var userId = User.Identity.GetUserId<int>();
 
             if (ModelState.IsValid)
             {
-                bateriaExercicio.CalcularAproveitamento();
+                var bateriaExercicioNovo = bateriaExercicio.ToBateriaExercicio();
+                bateriaExercicioNovo.CalcularAproveitamento();
 
-                db.BateriasExercicios.Add(bateriaExercicio);
+                db.BateriasExercicios.Add(bateriaExercicioNovo);
                 await db.SaveChangesAsync();
 
-                //ViewBag.TemaId = new SelectList(Enumerable.Empty<SelectListItem>());
                 return RedirectToAction("Index");
             }
 
-            ViewBag.MateriaId =
-                new SelectList(db.Materias
-                                .Where(m => m.UsuarioId == userId).ToList(),
-                                "MateriaId",
-                                "Nome", bateriaExercicio.Materia.MateriaId);
+            var materias = db.Materias
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
+            var temas = db.Temas;
 
+            ViewBag.MateriaId = new SelectList(materias, "MateriaId", "Nome");
             ViewBag.TemaId = new SelectList(Enumerable.Empty<SelectListItem>());
 
             return View(bateriaExercicio);

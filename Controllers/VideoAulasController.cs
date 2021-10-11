@@ -1,5 +1,7 @@
 ﻿using ExcelDataReader;
+using MeuCantinhoDeEstudos3.Extensions;
 using MeuCantinhoDeEstudos3.Models;
+using MeuCantinhoDeEstudos3.ViewModels;
 using Microsoft.AspNet.Identity;
 using OfficeOpenXml;
 using RazorPDF;
@@ -17,7 +19,7 @@ using System.Web.Mvc;
 namespace MeuCantinhoDeEstudos3.Controllers
 {
     [Authorize]
-    public class VideoAulasController : Controller
+    public class VideoAulasController : System.Web.Mvc.Controller
     {
         private MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
 
@@ -74,24 +76,24 @@ namespace MeuCantinhoDeEstudos3.Controllers
         // POST: VideoAulas/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create([Bind(Include = "TemaId,Descricao,LinkVideo")] VideoAula videoAula)
+        public async Task<ActionResult> Create([Bind(Include = "TemaId,Descricao,LinkVideo")] VideoAulaViewModel videoAula)
         {
             var userId = User.Identity.GetUserId<int>();
 
             if (ModelState.IsValid)
             {
-                db.VideoAulas.Add(videoAula);
+                db.VideoAulas.Add(videoAula.ToVideoAula());
                 await db.SaveChangesAsync();
 
                 return RedirectToAction("Index");
             }
 
-            ViewBag.MateriaId =
-                new SelectList(db.Materias
-                                .Where(m => m.UsuarioId == userId).ToList(),
-                                "MateriaId",
-                                "Nome", videoAula.Materia.MateriaId);
+            var materias = db.Materias
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
+            var temas = db.Temas;
 
+            ViewBag.MateriaId = new SelectList(materias, "MateriaId", "Nome");
             ViewBag.TemaId = new SelectList(Enumerable.Empty<SelectListItem>());
 
             return View(videoAula);

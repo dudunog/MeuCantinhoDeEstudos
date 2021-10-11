@@ -12,6 +12,7 @@ namespace MeuCantinhoDeEstudos3.Models
         [Key]
         public int TemaId { get; set; }
 
+        [DisplayName("Matéria")]
         public int MateriaId { get; set; }
 
         [Required]

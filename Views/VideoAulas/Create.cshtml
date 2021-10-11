@@ -1,4 +1,4 @@
-﻿@model MeuCantinhoDeEstudos3.Models.VideoAula
+﻿@model MeuCantinhoDeEstudos3.ViewModels.VideoAulaViewModel
 
 @{
     ViewBag.Title = "Adicionar";
@@ -21,18 +21,18 @@
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
         <div class="form-group">
-            @Html.LabelFor(model => model.Materia.MateriaId, "Matéria", htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.LabelFor(model => model.MateriaId, "Matéria", htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.DropDownList("MateriaId", null, "Selecione", htmlAttributes: new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.Materia.MateriaId, "", new { @class = "text-danger" })
+                @Html.DropDownListFor(model => model.MateriaId, null, "Selecione", htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.MateriaId, "", new { @class = "text-danger" })
             </div>
         </div>
 
         <div class="form-group">
-            @Html.LabelFor(model => model.Tema.TemaId, "Tema", htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.LabelFor(model => model.TemaId, "Tema", htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.DropDownList("TemaId", null, "Selecione", htmlAttributes: new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.Tema.TemaId, "", new { @class = "text-danger" })
+                @Html.DropDownListFor(model => model.TemaId, null, "Selecione", htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.TemaId, "", new { @class = "text-danger" })
             </div>
         </div>
 

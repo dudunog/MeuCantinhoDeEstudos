@@ -12,6 +12,7 @@ namespace MeuCantinhoDeEstudos3.Models
     public class Materia : IEntidadeAuditada<MateriaAuditoria>
     {
         [Key]
+        [DisplayName("Matéria")]
         public int MateriaId { get; set; }
         public int UsuarioId { get; set; }
 

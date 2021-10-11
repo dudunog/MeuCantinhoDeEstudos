@@ -10,6 +10,7 @@ namespace MeuCantinhoDeEstudos3.Models
         [Key]
         public int AtividadeId { get; set; }
 
+        [Required]
         public int TemaId { get; set; }
 
         [Required]
