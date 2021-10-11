@@ -49,11 +49,16 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            VideoAula videoAula = await db.VideoAulas.FindAsync(id);
+
+            VideoAula videoAula = await db.VideoAulas
+                                        .Include(v => v.Tema.Materia)
+                                        .FirstOrDefaultAsync(v => v.AtividadeId == id);
+            
             if (videoAula == null)
             {
                 return HttpNotFound();
             }
+
             return View(videoAula);
         }
 
@@ -107,7 +112,9 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            VideoAula videoAula = await db.VideoAulas.FindAsync(id);
+            VideoAula videoAula = await db.VideoAulas
+                                        .Include(v => v.Tema.Materia)    
+                                        .FirstOrDefaultAsync(v => v.AtividadeId == id);
             
             if (videoAula == null)
             {
@@ -158,11 +165,16 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            VideoAula videoAula = await db.VideoAulas.FindAsync(id);
+
+            VideoAula videoAula = await db.VideoAulas
+                                        .Include(v => v.Tema.Materia)
+                                        .FirstOrDefaultAsync(v => v.AtividadeId == id);
+            
             if (videoAula == null)
             {
                 return HttpNotFound();
             }
+
             return View(videoAula);
         }
 

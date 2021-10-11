@@ -17,8 +17,6 @@ namespace MeuCantinhoDeEstudos3.Models
         [DisplayName("Descrição/Observação")]
         public string Descricao { get; set; }
 
-        public virtual Materia Materia { get; set; }
-
         [ForeignKey(nameof(TemaId))]
         public virtual Tema Tema { get; set; }
     }

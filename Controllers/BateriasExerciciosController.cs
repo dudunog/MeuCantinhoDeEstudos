@@ -50,7 +50,9 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            BateriaExercicio bateriaExercicio = await db.BateriasExercicios.FindAsync(id);
+            BateriaExercicio bateriaExercicio = await db.BateriasExercicios
+                                                      .Include(b => b.Tema.Materia)
+                                                      .FirstOrDefaultAsync(b => b.AtividadeId == id);
 
             if (bateriaExercicio == null)
             {
@@ -113,7 +115,9 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            BateriaExercicio bateriaExercicio = await db.BateriasExercicios.FindAsync(id);
+            BateriaExercicio bateriaExercicio = await db.BateriasExercicios
+                                                      .Include(b => b.Tema.Materia)
+                                                      .FirstOrDefaultAsync(b => b.AtividadeId == id);
 
             if (bateriaExercicio == null)
             {
@@ -166,7 +170,9 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            BateriaExercicio bateriaExercicio = await db.BateriasExercicios.FindAsync(id);
+            BateriaExercicio bateriaExercicio = await db.BateriasExercicios
+                                                      .Include(b => b.Tema.Materia)
+                                                      .FirstOrDefaultAsync(b => b.AtividadeId == id);
 
             if (bateriaExercicio == null)
             {

@@ -49,7 +49,7 @@
             @Html.DisplayNameFor(model => model.Descricao)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Materia.Nome)
+            @Html.DisplayNameFor(model => model.Tema.Materia.Nome)
         </th>
         <th>
             @Html.DisplayNameFor(model => model.Tema.Nome)
@@ -73,7 +73,7 @@
                 @Html.DisplayFor(modelItem => item.Descricao)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Materia.Nome)
+                @Html.DisplayFor(modelItem => item.Tema.Materia.Nome)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Tema.Nome)

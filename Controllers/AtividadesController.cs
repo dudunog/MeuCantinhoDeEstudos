@@ -49,10 +49,15 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Atividade atividade = await db.Atividades.FindAsync(id);
+
+            Atividade atividade = await db.Atividades
+                                        .Include(a => a.Tema.Materia)
+                                        .FirstOrDefaultAsync(a => a.AtividadeId == id);
+            
             if (atividade == null)
             {
                 return HttpNotFound();
+            
             }
             return View(atividade);
         }
@@ -91,7 +96,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
             var materias = db.Materias
                            .Include(m => m.Usuario)
                            .Where(m => m.UsuarioId == userId);
-            var temas = db.Temas;
 
             ViewBag.MateriaId = new SelectList(materias, "MateriaId", "Nome");
             ViewBag.TemaId = new SelectList(Enumerable.Empty<SelectListItem>());
@@ -107,7 +111,9 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            Atividade atividade = await db.Atividades.FindAsync(id);
+            Atividade atividade = await db.Atividades
+                                        .Include(a => a.Tema.Materia)
+                                        .FirstOrDefaultAsync(a => a.AtividadeId == id);
 
             if (atividade == null)
             {
@@ -116,21 +122,19 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
             var userId = User.Identity.GetUserId<int>();
 
+            var materias = db.Materias
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
+
+            var temas = db.Temas
+                        .Include(t => t.Materia)
+                        .Where(t => t.Materia.UsuarioId == userId && t.MateriaId == atividade.Tema.MateriaId);
+
             ViewBag.TemaId =
-                new SelectList(db.Temas
-                               .Where(t => t.Materia.UsuarioId == userId && t.MateriaId == atividade.Tema.MateriaId)
-                               .ToList(),
-                               "TemaId",
-                               "Nome",
-                               atividade.TemaId);
+                new SelectList(temas, "TemaId", "Nome", atividade.TemaId);
 
             ViewBag.MateriaId =
-                new SelectList(db.Materias
-                               .Where(m => m.UsuarioId == userId)
-                               .ToList(),
-                               "MateriaId",
-                               "Nome",
-                               atividade.Tema.MateriaId);
+                new SelectList(materias, "MateriaId", "Nome", atividade.Tema.MateriaId);
 
             return View(atividade);
         }
@@ -158,11 +162,16 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Atividade atividade = await db.Atividades.FindAsync(id);
+
+            Atividade atividade = await db.Atividades
+                                        .Include(a => a.Tema.Materia)
+                                        .FirstOrDefaultAsync(a => a.AtividadeId == id);
+            
             if (atividade == null)
             {
                 return HttpNotFound();
             }
+
             return View(atividade);
         }
 
@@ -294,6 +303,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 db.Dispose();
             }
+
             base.Dispose(disposing);
         }
     }
