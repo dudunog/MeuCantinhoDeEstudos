@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using ExcelDataReader;
-using MeuCantinhoDeEstudos3.Extensions;
 using MeuCantinhoDeEstudos3.Mappers;
 using MeuCantinhoDeEstudos3.Models;
 using MeuCantinhoDeEstudos3.ViewModels;
@@ -43,14 +42,10 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 atividades = atividades.Where(a => a.Descricao.ToUpper().Contains(search.ToUpper()));
             }
 
-            //IEnumerable<AtividadeViewModel> viewModel =
-            //            await atividades.ToListAsync()
-            //                    .Result.Select(a => mapper.Map<AtividadeViewModel>(a));
-
-            IEnumerable<AtividadeViewModel> viewModel = 
+            IEnumerable<AtividadeViewModel> viewModels =
                 mapper.Map<List<AtividadeViewModel>>(await atividades.ToListAsync());
 
-            return View(viewModel);
+            return View(viewModels);
         }
 
         // GET: Atividades/Details/5

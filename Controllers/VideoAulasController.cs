@@ -1,5 +1,7 @@
-﻿using ExcelDataReader;
+﻿using AutoMapper;
+using ExcelDataReader;
 using MeuCantinhoDeEstudos3.Extensions;
+using MeuCantinhoDeEstudos3.Mappers;
 using MeuCantinhoDeEstudos3.Models;
 using MeuCantinhoDeEstudos3.ViewModels;
 using Microsoft.AspNet.Identity;
@@ -23,6 +25,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
     {
         private MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
 
+        private readonly IMapper mapper = AutoMapperConfig.Mapper;
+
         // GET: VideoAulas
         public async Task<ActionResult> Index(string search)
         {
@@ -39,7 +43,10 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 videoAulas = videoAulas.Where(v => v.Descricao.ToUpper().Contains(search.ToUpper()));
             }
 
-            return View(await videoAulas.ToListAsync());
+            IEnumerable<VideoAulaViewModel> viewModels =
+                mapper.Map<IEnumerable<VideoAulaViewModel>>(await videoAulas.ToListAsync());
+
+            return View(viewModels);
         }
 
         // GET: VideoAulas/Details/5
@@ -59,35 +66,41 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 return HttpNotFound();
             }
 
-            return View(videoAula);
+            VideoAulaViewModel viewModel = mapper.Map<VideoAulaViewModel>(videoAula);
+
+            return View(viewModel);
         }
 
         // GET: VideoAulas/Create
-        public ActionResult Create()
+        public async Task<ActionResult> Create()
         {
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.MateriaId = 
-                new SelectList(db.Materias
-                               .Where(m => m.UsuarioId == userId).ToList(),
-                               "MateriaId",
-                               "Nome");
+            var materias = db.Materias
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
 
-            ViewBag.TemaId = new SelectList(Enumerable.Empty<SelectListItem>());
+            VideoAulaViewModel viewModel = new VideoAulaViewModel
+            {
+                Materias = new SelectList(await materias.ToListAsync(), "MateriaId", "Nome"),
+                Temas = new SelectList(Enumerable.Empty<SelectListItem>())
+            };
 
-            return View();
+            return View(viewModel);
         }
 
         // POST: VideoAulas/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create([Bind(Include = "TemaId,Descricao,LinkVideo")] VideoAulaViewModel videoAula)
+        public async Task<ActionResult> Create([Bind(Include = "MateriaId,TemaId,Descricao,LinkVideo")] VideoAulaViewModel viewModel)
         {
             var userId = User.Identity.GetUserId<int>();
 
+            VideoAula videoAula = mapper.Map<VideoAula>(viewModel);
+
             if (ModelState.IsValid)
             {
-                db.VideoAulas.Add(videoAula.ToVideoAula());
+                db.VideoAulas.Add(videoAula);
                 await db.SaveChangesAsync();
 
                 return RedirectToAction("Index");
@@ -96,12 +109,16 @@ namespace MeuCantinhoDeEstudos3.Controllers
             var materias = db.Materias
                            .Include(m => m.Usuario)
                            .Where(m => m.UsuarioId == userId);
-            var temas = db.Temas;
+            var temas = db.Temas
+                        .Include(t => t.Materia)
+                        .Where(t => t.Materia.UsuarioId == userId && t.MateriaId == viewModel.MateriaId);
 
-            ViewBag.MateriaId = new SelectList(materias, "MateriaId", "Nome");
-            ViewBag.TemaId = new SelectList(Enumerable.Empty<SelectListItem>());
+            viewModel.Materias =
+                new SelectList(await materias.ToListAsync(), "MateriaId", "Nome", viewModel.MateriaId);
+            viewModel.Temas =
+                new SelectList(await temas.ToListAsync(), "TemaId", "Nome", viewModel.TemaId);
 
-            return View(videoAula);
+            return View(viewModel);
         }
 
         // GET: VideoAulas/Edit/5
@@ -113,7 +130,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
             }
 
             VideoAula videoAula = await db.VideoAulas
-                                        .Include(v => v.Tema.Materia)    
+                                        .Include(v => v.Tema.Materia)
                                         .FirstOrDefaultAsync(v => v.AtividadeId == id);
             
             if (videoAula == null)
@@ -123,30 +140,30 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.TemaId =
-                new SelectList(db.Temas
-                               .Where(t => t.Materia.UsuarioId == userId && t.MateriaId == videoAula.Tema.MateriaId)
-                               .ToList(),
-                               "TemaId",
-                               "Nome",
-                               videoAula.TemaId);
+            var materias = db.Materias
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
+            var temas = db.Temas
+                        .Include(t => t.Materia)
+                        .Where(t => t.Materia.UsuarioId == userId && t.MateriaId == videoAula.Tema.MateriaId);
 
-            ViewBag.MateriaId =
-                new SelectList(db.Materias
-                               .Where(m => m.UsuarioId == userId)
-                               .ToList(),
-                               "MateriaId",
-                               "Nome",
-                               videoAula.Tema.MateriaId);
+            VideoAulaViewModel viewModel = mapper.Map<VideoAulaViewModel>(videoAula);
+            viewModel.MateriaId = videoAula.Tema.MateriaId;
+            viewModel.Materias = 
+                new SelectList(await materias.ToListAsync(), "MateriaId", "Nome", videoAula.Tema.MateriaId);
+            viewModel.Temas = 
+                new SelectList(await temas.ToListAsync(), "TemaId", "Nome", videoAula.TemaId);
 
-            return View(videoAula);
+            return View(viewModel);
         }
 
         // POST: VideoAulas/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "AtividadeId,TemaId,Descricao,LinkVideo")] VideoAula videoAula)
+        public async Task<ActionResult> Edit([Bind(Include = "AtividadeId,TemaId,Descricao,LinkVideo")] VideoAulaViewModel viewModel)
         {
+            VideoAula videoAula = mapper.Map<VideoAula>(viewModel);
+
             if (ModelState.IsValid)
             {
                 db.Entry(videoAula).State = EntityState.Modified;
@@ -175,7 +192,9 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 return HttpNotFound();
             }
 
-            return View(videoAula);
+            VideoAulaViewModel viewModel = mapper.Map<VideoAulaViewModel>(videoAula);
+
+            return View(viewModel);
         }
 
         // POST: VideoAulas/Delete/5
@@ -184,8 +203,10 @@ namespace MeuCantinhoDeEstudos3.Controllers
         public async Task<ActionResult> DeleteConfirmed(int id)
         {
             VideoAula videoAula = await db.VideoAulas.FindAsync(id);
+
             db.VideoAulas.Remove(videoAula);
             await db.SaveChangesAsync();
+            
             return RedirectToAction("Index");
         }
 
