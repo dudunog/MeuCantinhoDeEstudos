@@ -5,15 +5,6 @@ namespace MeuCantinhoDeEstudos3.Extensions
 {
     public static class ConversionExtensions
     {
-        public static Atividade ToAtividade(this AtividadeViewModel viewModel)
-        {
-            return new Atividade()
-            {
-                TemaId = viewModel.TemaId,
-                Descricao = viewModel.Descricao
-            };
-        }
-
         public static VideoAula ToVideoAula(this VideoAulaViewModel viewModel)
         {
             return new VideoAula()

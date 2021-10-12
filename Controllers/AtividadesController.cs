@@ -1,5 +1,7 @@
-﻿using ExcelDataReader;
+﻿using AutoMapper;
+using ExcelDataReader;
 using MeuCantinhoDeEstudos3.Extensions;
+using MeuCantinhoDeEstudos3.Mappers;
 using MeuCantinhoDeEstudos3.Models;
 using MeuCantinhoDeEstudos3.ViewModels;
 using Microsoft.AspNet.Identity;
@@ -23,6 +25,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
     {
         private MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
 
+        private readonly IMapper mapper = AutoMapperConfig.Mapper;
+
         // GET: Atividades
         public async Task<ActionResult> Index(string search)
         {
@@ -31,15 +35,22 @@ namespace MeuCantinhoDeEstudos3.Controllers
             ViewBag.CurrentSearch = search;
 
             var atividades = db.Atividades
-                           .Include(a => a.Tema.Materia)
-                           .Where(a => a.Tema.Materia.UsuarioId == userId);
+                             .Include(a => a.Tema.Materia)
+                             .Where(a => a.Tema.Materia.UsuarioId == userId);
 
             if (!string.IsNullOrEmpty(search))
             {
                 atividades = atividades.Where(a => a.Descricao.ToUpper().Contains(search.ToUpper()));
             }
-           
-            return View(await atividades.ToListAsync());
+
+            //IEnumerable<AtividadeViewModel> viewModel =
+            //            await atividades.ToListAsync()
+            //                    .Result.Select(a => mapper.Map<AtividadeViewModel>(a));
+
+            IEnumerable<AtividadeViewModel> viewModel = 
+                mapper.Map<List<AtividadeViewModel>>(await atividades.ToListAsync());
+
+            return View(viewModel);
         }
 
         // GET: Atividades/Details/5
@@ -59,7 +70,10 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 return HttpNotFound();
             
             }
-            return View(atividade);
+
+            AtividadeViewModel viewModel = mapper.Map<AtividadeViewModel>(atividade);
+
+            return View(viewModel);
         }
 
         // GET: Atividades/Create
@@ -81,13 +95,15 @@ namespace MeuCantinhoDeEstudos3.Controllers
         // POST: Atividades/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create([Bind(Include = "TemaId,Descricao")] AtividadeViewModel atividade)
+        public async Task<ActionResult> Create([Bind(Include = "TemaId,Descricao")] AtividadeViewModel viewModel)
         {
             var userId = User.Identity.GetUserId<int>();
 
+            Atividade atividade = mapper.Map<Atividade>(viewModel);
+
             if (ModelState.IsValid)
             {
-                db.Atividades.Add(atividade.ToAtividade());
+                db.Atividades.Add(atividade);
                 await db.SaveChangesAsync();
 
                 return RedirectToAction("Index");
@@ -130,20 +146,21 @@ namespace MeuCantinhoDeEstudos3.Controllers
                         .Include(t => t.Materia)
                         .Where(t => t.Materia.UsuarioId == userId && t.MateriaId == atividade.Tema.MateriaId);
 
-            ViewBag.TemaId =
-                new SelectList(temas, "TemaId", "Nome", atividade.TemaId);
+            AtividadeViewModel viewModel = mapper.Map<AtividadeViewModel>(atividade);
+            viewModel.MateriaId = atividade.Tema.MateriaId;
+            viewModel.Materias = new SelectList(materias, "MateriaId", "Nome");
+            viewModel.Temas = new SelectList(temas, "TemaId", "Nome", atividade.TemaId);
 
-            ViewBag.MateriaId =
-                new SelectList(materias, "MateriaId", "Nome", atividade.Tema.MateriaId);
-
-            return View(atividade);
+            return View(viewModel);
         }
 
         // POST: Atividades/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "AtividadeId,TemaId,Descricao")] Atividade atividade)
+        public async Task<ActionResult> Edit([Bind(Include = "AtividadeId,TemaId,Descricao")] AtividadeViewModel viewModel)
         {
+            Atividade atividade = mapper.Map<Atividade>(viewModel);
+
             if (ModelState.IsValid)
             {
                 db.Entry(atividade).State = EntityState.Modified;
@@ -172,7 +189,9 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 return HttpNotFound();
             }
 
-            return View(atividade);
+            AtividadeViewModel viewModel = mapper.Map<AtividadeViewModel>(atividade);
+
+            return View(viewModel);
         }
 
         // POST: Atividades/Delete/5
@@ -181,8 +200,10 @@ namespace MeuCantinhoDeEstudos3.Controllers
         public async Task<ActionResult> DeleteConfirmed(int id)
         {
             Atividade atividade = await db.Atividades.FindAsync(id);
+
             db.Atividades.Remove(atividade);
             await db.SaveChangesAsync();
+            
             return RedirectToAction("Index");
         }
 
@@ -245,7 +266,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
                 //Títulos
                 var i = 1;
-                var titulos = new String[] { "Descrição", "Matéria", "Tema" };
+                var titulos = new [] { "Descrição", "Matéria", "Tema" };
                 foreach (var titulo in titulos)
                 {
                     sheet.Cells[1, i++].Value = titulo;

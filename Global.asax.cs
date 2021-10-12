@@ -5,6 +5,10 @@ using StackExchange.Profiling.EntityFramework6;
 using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Routing;
+using AutoMapper;
+using MeuCantinhoDeEstudos3.Models;
+using MeuCantinhoDeEstudos3.ViewModels;
+using MeuCantinhoDeEstudos3.Mappers;
 
 namespace MeuCantinhoDeEstudos3
 {
@@ -30,6 +34,8 @@ namespace MeuCantinhoDeEstudos3
             auditConfiguration.IncludeRelationships = true;
             auditConfiguration.LoadRelationships = true;
             auditConfiguration.DefaultAuditable = true;
+
+            AutoMapperConfig.RegisterMappings();
         }
 
         protected void Application_BeginRequest()

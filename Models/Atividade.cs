@@ -10,7 +10,7 @@ namespace MeuCantinhoDeEstudos3.Models
         [Key]
         public int AtividadeId { get; set; }
 
-        [Required]
+        [DisplayName("Tema")]
         public int TemaId { get; set; }
 
         [Required]
