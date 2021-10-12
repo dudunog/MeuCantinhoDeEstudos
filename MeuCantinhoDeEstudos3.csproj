@@ -275,7 +275,6 @@
     <Compile Include="Controllers\TemasController.cs" />
     <Compile Include="Controllers\UsuarioInformacoesController.cs" />
     <Compile Include="Controllers\VideoAulasController.cs" />
-    <Compile Include="Extensions\ConversionExtensions.cs" />
     <Compile Include="Extensions\Controller.cs" />
     <Compile Include="Extensions\CustomJsonResult.cs" />
     <Compile Include="Global.asax.cs">

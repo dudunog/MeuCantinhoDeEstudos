@@ -9,5 +9,7 @@ namespace MeuCantinhoDeEstudos3.ViewModels
 
         [DisplayName("Quantidade de acertos")]
         public int QuantidadeAcertos { get; set; }
+
+        public double Aproveitamento { get; set; }
     }
 }

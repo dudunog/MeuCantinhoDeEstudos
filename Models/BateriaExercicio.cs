@@ -9,7 +9,6 @@ namespace MeuCantinhoDeEstudos3.Models
         public int QuantidadeExercicios { get; set; }
 
         [DisplayName("Quantidade de acertos")]
-
         public int QuantidadeAcertos { get; set; }
 
         public double Aproveitamento { get; set; }

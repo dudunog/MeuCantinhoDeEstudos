@@ -35,8 +35,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
             ViewBag.CurrentSearch = search;
 
             var videoAulas = db.VideoAulas
-                           .Include(v => v.Tema.Materia)
-                           .Where(v => v.Tema.Materia.UsuarioId == userId);
+                             .Include(v => v.Tema.Materia)
+                             .Where(v => v.Tema.Materia.UsuarioId == userId);
 
             if (!string.IsNullOrEmpty(search))
             {
@@ -110,7 +110,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                            .Include(m => m.Usuario)
                            .Where(m => m.UsuarioId == userId);
             var temas = db.Temas
-                        .Include(t => t.Materia)
+                        .Include(t => t.Materia.Usuario)
                         .Where(t => t.Materia.UsuarioId == userId && t.MateriaId == viewModel.MateriaId);
 
             viewModel.Materias =

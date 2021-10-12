@@ -1,5 +1,4 @@
-﻿using MeuCantinhoDeEstudos3.Models;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace MeuCantinhoDeEstudos3.ViewModels
 {

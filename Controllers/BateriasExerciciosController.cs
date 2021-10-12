@@ -1,5 +1,7 @@
-﻿using ExcelDataReader;
+﻿using AutoMapper;
+using ExcelDataReader;
 using MeuCantinhoDeEstudos3.Extensions;
+using MeuCantinhoDeEstudos3.Mappers;
 using MeuCantinhoDeEstudos3.Models;
 using MeuCantinhoDeEstudos3.ViewModels;
 using Microsoft.AspNet.Identity;
@@ -23,6 +25,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
     {
         private MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
 
+        private readonly IMapper mapper = AutoMapperConfig.Mapper;
+
         // GET: BateriaExercicios
         public async Task<ActionResult> Index(string search)
         {
@@ -39,7 +43,10 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 bateriasExercicios = bateriasExercicios.Where(a => a.Descricao.ToUpper().Contains(search.ToUpper()));
             }
 
-            return View(await bateriasExercicios.ToListAsync());
+            IEnumerable<BateriaExercicioViewModel> viewModels =
+                mapper.Map<IEnumerable<BateriaExercicioViewModel>>(await bateriasExercicios.ToListAsync());
+
+            return View(viewModels);
         }
 
         // GET: BateriaExercicios/Details/5
@@ -59,38 +66,42 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 return HttpNotFound();
             }
 
-            return View(bateriaExercicio);
+            BateriaExercicioViewModel viewModel = mapper.Map<BateriaExercicioViewModel>(bateriaExercicio);
+
+            return View(viewModel);
         }
 
         // GET: BateriaExercicios/Create
-        public ActionResult Create()
+        public async Task<ActionResult> Create()
         {
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.MateriaId = 
-                new SelectList(db.Materias
-                                .Where(m => m.UsuarioId == userId).ToList(), 
-                                "MateriaId",
-                                "Nome");
+            var materias = db.Materias
+                           .Where(m => m.UsuarioId == userId);
 
-            ViewBag.TemaId = new SelectList(Enumerable.Empty<SelectListItem>());
+            BateriaExercicioViewModel viewModel = new BateriaExercicioViewModel
+            {
+                Materias = new SelectList(await materias.ToListAsync(), "MateriaId", "Nome"),
+                Temas = new SelectList(Enumerable.Empty<SelectListItem>())
+            };
 
-            return View();
+            return View(viewModel);
         }
 
         // POST: BateriaExercicios/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create([Bind(Include = "TemaId,Descricao,QuantidadeExercicios,QuantidadeAcertos")] BateriaExercicioViewModel bateriaExercicio)
+        public async Task<ActionResult> Create([Bind(Include = "MateriaId,TemaId,Descricao,QuantidadeExercicios,QuantidadeAcertos")] BateriaExercicioViewModel viewModel)
         {
             var userId = User.Identity.GetUserId<int>();
 
+            BateriaExercicio bateriaExercicio = mapper.Map<BateriaExercicio>(viewModel);
+
             if (ModelState.IsValid)
             {
-                var bateriaExercicioNovo = bateriaExercicio.ToBateriaExercicio();
-                bateriaExercicioNovo.CalcularAproveitamento();
+                bateriaExercicio.CalcularAproveitamento();
 
-                db.BateriasExercicios.Add(bateriaExercicioNovo);
+                db.BateriasExercicios.Add(bateriaExercicio);
                 await db.SaveChangesAsync();
 
                 return RedirectToAction("Index");
@@ -99,12 +110,14 @@ namespace MeuCantinhoDeEstudos3.Controllers
             var materias = db.Materias
                            .Include(m => m.Usuario)
                            .Where(m => m.UsuarioId == userId);
-            var temas = db.Temas;
+            var temas = db.Temas
+                        .Include(t => t.Materia.Usuario)
+                        .Where(t => t.Materia.UsuarioId == userId && t.MateriaId == viewModel.MateriaId);
 
-            ViewBag.MateriaId = new SelectList(materias, "MateriaId", "Nome");
-            ViewBag.TemaId = new SelectList(Enumerable.Empty<SelectListItem>());
+            viewModel.Materias = new SelectList(await materias.ToListAsync(), "MateriaId", "Nome", viewModel.MateriaId);
+            viewModel.Temas = new SelectList(await temas.ToListAsync(), "TemaId", "Nome", viewModel.TemaId);
 
-            return View(bateriaExercicio);
+            return View(viewModel);
         }
 
         // GET: BateriaExercicios/Edit/5
@@ -126,30 +139,33 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.TemaId =
-                new SelectList(db.Temas
-                               .Where(t => t.Materia.UsuarioId == userId && t.MateriaId == bateriaExercicio.Tema.MateriaId)
-                               .ToList(), 
-                               "TemaId", 
-                               "Nome", 
-                               bateriaExercicio.TemaId);
-            
-            ViewBag.MateriaId =
-                new SelectList(db.Materias
-                               .Where(m => m.UsuarioId == userId)
-                               .ToList(), 
-                               "MateriaId", 
-                               "Nome", 
-                               bateriaExercicio.Tema.MateriaId);
+            var materias = db.Materias
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
+            var temas = db.Temas
+                        .Include(t => t.Materia.Usuario)
+                        .Where(t => t.Materia.UsuarioId == userId && t.MateriaId == bateriaExercicio.Tema.MateriaId);
 
-            return View(bateriaExercicio);
+            BateriaExercicioViewModel viewModel =
+                mapper.Map<BateriaExercicioViewModel>(bateriaExercicio);
+            viewModel.MateriaId = bateriaExercicio.Tema.MateriaId;
+
+            viewModel.Materias =
+                new SelectList(await materias.ToListAsync(), "MateriaId", "Nome", bateriaExercicio.Tema.MateriaId);
+
+            viewModel.Temas =
+                new SelectList(await temas.ToListAsync(), "TemaId", "Nome", bateriaExercicio.TemaId);
+
+            return View(viewModel);
         }
 
         // POST: BateriaExercicios/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "AtividadeId,Descricao,MateriaId,TemaId,QuantidadeExercicios,QuantidadeAcertos")] BateriaExercicio bateriaExercicio)
+        public async Task<ActionResult> Edit([Bind(Include = "AtividadeId,Descricao,MateriaId,TemaId,QuantidadeExercicios,QuantidadeAcertos")] BateriaExercicioViewModel viewModel)
         {
+            BateriaExercicio bateriaExercicio = mapper.Map<BateriaExercicio>(viewModel);
+
             if (ModelState.IsValid)
             {
                 bateriaExercicio.CalcularAproveitamento();
@@ -170,16 +186,20 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            BateriaExercicio bateriaExercicio = await db.BateriasExercicios
-                                                      .Include(b => b.Tema.Materia)
-                                                      .FirstOrDefaultAsync(b => b.AtividadeId == id);
+            BateriaExercicio bateriaExercicio =
+                await db.BateriasExercicios
+                      .Include(b => b.Tema.Materia)
+                      .FirstOrDefaultAsync(b => b.AtividadeId == id);
 
             if (bateriaExercicio == null)
             {
                 return HttpNotFound();
             }
 
-            return View(bateriaExercicio);
+            BateriaExercicioViewModel viewModel =
+                mapper.Map<BateriaExercicioViewModel>(bateriaExercicio);
+
+            return View(viewModel);
         }
 
         // POST: BateriaExercicios/Delete/5
@@ -188,6 +208,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
         public async Task<ActionResult> DeleteConfirmed(int id)
         {
             BateriaExercicio bateriaExercicio = await db.BateriasExercicios.FindAsync(id);
+            
             db.BateriasExercicios.Remove(bateriaExercicio);
             await db.SaveChangesAsync();
 
