@@ -311,7 +311,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="ViewModels\AtividadeViewModel.cs" />
-    <Compile Include="ViewModels\UploadViewModel.cs" />
+    <Compile Include="ViewModels\TemaViewModel.cs" />
     <Compile Include="ViewModels\VideoAulaViewModel.cs" />
   </ItemGroup>
   <ItemGroup>

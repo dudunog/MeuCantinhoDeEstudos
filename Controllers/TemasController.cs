@@ -13,6 +13,9 @@ using System;
 using OfficeOpenXml;
 using System.Web;
 using RazorPDF;
+using MeuCantinhoDeEstudos3.ViewModels;
+using AutoMapper;
+using MeuCantinhoDeEstudos3.Mappers;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
@@ -20,6 +23,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
     public class TemasController : Controller
     {
         private MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
+
+        private readonly IMapper mapper = AutoMapperConfig.Mapper;
 
         // GET: Temas
         public async Task<ActionResult> Index(string search)
@@ -29,7 +34,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
             ViewBag.CurrentSearch = search;
 
             var temas = db.Temas
-                        .Include(t => t.Materia)
+                        .Include(t => t.Materia.Usuario)
+                        .Include(t => t.Atividades)
                         .Where(t => t.Materia.UsuarioId == userId);
 
             if (!string.IsNullOrEmpty(search))
@@ -37,48 +43,60 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 temas = temas.Where(t => t.Nome.ToUpper().Contains(search.ToUpper()));
             }
 
-            return View(await temas.ToListAsync());
+            IEnumerable<TemaViewModel> viewModels =
+                mapper.Map<IEnumerable<TemaViewModel>>(await temas.ToListAsync());
+
+            return View(viewModels);
         }
 
         // GET: Temas/Details/5
-        public ActionResult Details(int? id)
+        public async Task<ActionResult> Details(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            Tema tema = db.Temas
+            Tema tema = await db.Temas
                         .Include(t => t.Materia)
-                        .SingleOrDefault(t => t.TemaId == id);
+                        .Include(t => t.Atividades)
+                        .FirstOrDefaultAsync(t => t.TemaId == id);
 
             if (tema == null)
             {
                 return HttpNotFound();
             }
 
-            return View(tema);
+            TemaViewModel viewModel =
+                mapper.Map<TemaViewModel>(tema);
+
+            return View(viewModel);
         }
 
         // GET: Temas/Create
-        public ActionResult Create()
+        public async Task<ActionResult> Create()
         {
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.MateriaId =
-                new SelectList(db.Materias
-                               .Where(m => m.UsuarioId == userId), "MateriaId", "Nome");
+            var materias = db.Materias
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
 
-            return View();
+            TemaViewModel viewModel = new TemaViewModel
+            {
+                Materias = new SelectList(await materias.ToListAsync(), "MateriaId", "Nome")
+            };
+
+            return View(viewModel);
         }
 
         // POST: Temas/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create([Bind(Include = "TemaId,MateriaId,Nome")] Tema tema)
+        public async Task<ActionResult> Create([Bind(Include = "TemaId,MateriaId,Nome")] TemaViewModel viewModel)
         {
+            Tema tema = mapper.Map<Tema>(viewModel);
+
             if (ModelState.IsValid)
             {
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
@@ -94,11 +112,13 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.MateriaId = 
-                new SelectList(db.Materias
-                               .Where(m => m.UsuarioId == userId), "MateriaId", "Nome", tema.MateriaId);
-            
-            return View(tema);
+            var materias = db.Materias
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
+
+            viewModel.Materias = new SelectList(await materias.ToListAsync(), "MateriaId", "Nome", viewModel.MateriaId);
+
+            return View(viewModel);
         }
 
         // GET: Temas/Edit/5
@@ -108,8 +128,11 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-
-            Tema tema = await db.Temas.FindAsync(id);
+            
+            Tema tema = await db.Temas
+                              .Include(t => t.Materia)
+                              .Include(t => t.Atividades)
+                              .FirstOrDefaultAsync(t => t.TemaId == id);
 
             if (tema == null)
             {
@@ -117,21 +140,26 @@ namespace MeuCantinhoDeEstudos3.Controllers
             }
 
             var userId = User.Identity.GetUserId<int>();
+            
+            var materias = db.Materias
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
 
-            ViewBag.MateriaId = 
-                new SelectList(db.Materias
-                               .Where(m => m.UsuarioId == userId), "MateriaId", "Nome", tema.MateriaId);
+            TemaViewModel viewModel =
+                mapper.Map<TemaViewModel>(tema);
 
-            return View(tema);
+            viewModel.Materias = new SelectList(await materias.ToListAsync(), "MateriaId", "Nome", tema.MateriaId);
+
+            return View(viewModel);
         }
 
         // POST: Temas/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "TemaId,MateriaId,Nome,DataCriacao,UsuarioCriacao")] Tema tema)
+        public async Task<ActionResult> Edit([Bind(Include = "TemaId,MateriaId,Nome,DataCriacao,UsuarioCriacao")] TemaViewModel viewModel)
         {
+            Tema tema = mapper.Map<Tema>(viewModel);
+
             if (ModelState.IsValid)
             {
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
@@ -147,11 +175,14 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.MateriaId =
-                new SelectList(db.Materias
-                               .Where(m => m.UsuarioId == userId), "MateriaId", "Nome", tema.MateriaId);
+            var materias = db.Materias
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
 
-            return View(tema);
+            viewModel.Materias =
+                new SelectList(await materias.ToListAsync(), "MateriaId", "Nome", viewModel.MateriaId);
+
+            return View(viewModel);
         }
 
         // GET: Temas/Delete/5
@@ -162,14 +193,19 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            Tema tema = await db.Temas.FindAsync(id);
+            Tema tema = await db.Temas
+                              .Include(t => t.Materia)
+                              .Include(t => t.Atividades)
+                              .FirstOrDefaultAsync(t => t.TemaId == id);
 
             if (tema == null)
             {
                 return HttpNotFound();
             }
 
-            return View(tema);
+            TemaViewModel viewModel = mapper.Map<TemaViewModel>(tema);
+
+            return View(viewModel);
         }
 
         // POST: Temas/Delete/5

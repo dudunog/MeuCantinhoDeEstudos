@@ -18,6 +18,8 @@ namespace MeuCantinhoDeEstudos3.Mappers
                 mapper.CreateMap<VideoAulaViewModel, VideoAula>();
                 mapper.CreateMap<BateriaExercicio, BateriaExercicioViewModel>();
                 mapper.CreateMap<BateriaExercicioViewModel, BateriaExercicio>();
+                mapper.CreateMap<Tema, TemaViewModel>();
+                mapper.CreateMap<TemaViewModel, Tema>();
             });
 
             Mapper = configuration.CreateMapper();

@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using ExcelDataReader;
-using MeuCantinhoDeEstudos3.Extensions;
 using MeuCantinhoDeEstudos3.Mappers;
 using MeuCantinhoDeEstudos3.Models;
 using MeuCantinhoDeEstudos3.ViewModels;
