@@ -1,12 +1,9 @@
 ﻿using MeuCantinhoDeEstudos3.Models;
-using MeuCantinhoDeEstudos3.Models.ClassesDeLog;
 using Microsoft.AspNet.Identity;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Threading.Tasks;
 using System.Transactions;
 using System.Web.Mvc;
-using Z.BulkOperations;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
@@ -18,7 +15,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
         // GET: UsuarioInformacoes/Create
         public async Task<ActionResult> Create()
         {
-            //ViewData["UsuarioId"]
             var userId = User.Identity.GetUserId<int>();
 
             UsuarioInformacoes usuarioInformacoes = await db.UsuarioInformacoes.FindAsync(userId);
@@ -43,7 +39,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     db.Entry(usuarioInformacoes).State = EntityState.Added;
-
                     await db.SaveChangesAsync();
 
                     scope.Complete();
@@ -77,14 +72,21 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             if (ModelState.IsValid)
             {
-                usuarioInformacoes.UsuarioId = User.Identity.GetUserId<int>();
+                var userId = User.Identity.GetUserId<int>();
+
+                UsuarioInformacoes usuarioInformacoesOriginal =
+                    await db.UsuarioInformacoes.FindAsync(userId);
 
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-                {                    
-                    db.Entry(usuarioInformacoes).State = EntityState.Modified;
+                {
+                    if (TryUpdateModel(usuarioInformacoesOriginal))
+                    {
+                        db.Entry(usuarioInformacoesOriginal).State = EntityState.Modified;
+                        await db.SaveChangesAsync();
+                        
+                        //db.SaveChanges();
+                    }
 
-                    await db.SaveChangesAsync();
-                    
                     scope.Complete();
                 }
 
@@ -93,45 +95,5 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
             return RedirectToAction("Edit");
         }
-
-        //private static async Task SaveUsuarioInformacoesAuditChanges(List<AuditEntry> auditEntries, int userId)
-        //{
-        //    MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
-
-        //    List<UsuarioInformacoesLog> auditLogs = new List<UsuarioInformacoesLog>();
-
-        //    List<UsuarioInformacoesLogValores> auditLogsValues = new List<UsuarioInformacoesLogValores>();
-
-        //    foreach (var auditEntry in auditEntries)
-        //    {
-        //        UsuarioInformacoesLog usuarioLog = new UsuarioInformacoesLog()
-        //        {
-        //            UsuarioId = userId,
-        //            Action = auditEntry.Action.ToString(),
-        //            NomeTabela = auditEntry.TableName,
-        //            Data = auditEntry.Date,
-        //            Valores = new List<UsuarioInformacoesLogValores>(),
-        //        };
-
-        //        auditLogs.Add(usuarioLog);
-
-        //        await db.BulkInsertAsync(auditLogs);
-
-        //        foreach (var value in auditEntry.Values)
-        //        {
-        //            var usuarioLogValue = new UsuarioInformacoesLogValores()
-        //            {
-        //                UsuarioInformacoesLogId = usuarioLog.UsuarioInformacoesLogId,
-        //                NomePropriedade = value.ColumnName,
-        //                ValorAntigo = value.OldValue != null ? value.OldValue.ToString() : null,
-        //                ValorNovo = value.NewValue != null ? value.NewValue.ToString() : null,
-        //            };
-
-        //            auditLogsValues.Add(usuarioLogValue);
-        //        }
-        //    }
-
-        //    await db.BulkInsertAsync(auditLogsValues, options => options.AutoMapOutputDirection = false);
-        //}
     }
 }

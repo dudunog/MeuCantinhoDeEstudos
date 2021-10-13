@@ -7,15 +7,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using FastMember;
-using Microsoft.AspNet.Identity;
 using MeuCantinhoDeEstudos3.Models.Interfaces;
 using Microsoft.AspNet.Identity.EntityFramework;
-using Z.BulkOperations;
 using MeuCantinhoDeEstudos3.Models.ClassesDeLog;
 using EntityFramework.Extensions;
 using EntityFramework.Audit;
 using EntityFramework.Triggers;
-using System.Security.Claims;
 
 namespace MeuCantinhoDeEstudos3.Models
 {
@@ -77,8 +74,9 @@ namespace MeuCantinhoDeEstudos3.Models
                 var audit = this.BeginAudit();
 
                 this.SaveChangesWithTriggers(base.SaveChanges);
-
-                ApplyIncrementAudit(ChangeTracker, audit);
+                
+                ApplyAuditInUsuarioEntity(this, audit);
+                ApplyAuditInUsuarioInformacoesEntity(this, audit);
             }
             catch (DbEntityValidationException ex)
             {
@@ -131,7 +129,9 @@ namespace MeuCantinhoDeEstudos3.Models
 
                 await this.SaveChangesWithTriggersAsync(base.SaveChangesAsync);
 
-                ApplyIncrementAudit(ChangeTracker, audit);
+                await ApplyAuditInUsuarioEntityAsync(this, audit);
+
+                await ApplyAuditInUsuarioInformacoesEntityAsync(this, audit);
             }
             catch (DbEntityValidationException ex)
             {
@@ -168,12 +168,6 @@ namespace MeuCantinhoDeEstudos3.Models
             return await this.SaveChangesWithTriggersAsync(base.SaveChangesAsync);
         }
 
-        private void ApplyIncrementAudit(DbChangeTracker changeTracker, AuditLogger audit)
-        {
-            ApplyAuditInUsuarioEntity(changeTracker, audit);
-            //ApplyAuditInUsuarioInformacoesEntity(changeTracker, audit);
-        }
-
         private static void ApplyCreationAndModificationProperts(DbEntityEntry entry)
         {
             var currentTime = DateTime.Now;
@@ -207,12 +201,60 @@ namespace MeuCantinhoDeEstudos3.Models
             }
         }
 
-        private static async void ApplyAuditInUsuarioEntity(DbChangeTracker changeTracker, AuditLogger audit)
+        private static void ApplyAuditInUsuarioEntity(MeuCantinhoDeEstudosContext db, AuditLogger audit)
         {
-            MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
             List<UsuarioLogValores> auditLogsValores = new List<UsuarioLogValores>();
 
-            foreach (var entry in changeTracker.Entries().Where(e => e.Entity != null &&
+            foreach (var entry in db.ChangeTracker.Entries().Where(e => e.Entity != null &&
+                    typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
+            {
+                if (entry.Entity.GetType().BaseType.Name == typeof(Usuario).Name ||
+                    entry.Entity.GetType().Name == typeof(Usuario).Name)
+                {
+                    var log = audit.LastLog;
+
+                    foreach (var auditEntry in log.Entities)
+                    {
+                        UsuarioLog usuarioLog = new UsuarioLog()
+                        {
+                            UsuarioId = (int)entry.Property("Id").CurrentValue,
+                            Action = auditEntry.Action.ToString(),
+                            NomeTabela = auditEntry.EntityType.Name.ToString(),
+                            Data = log.Date,
+                            Valores = new List<UsuarioLogValores>(),
+                        };
+
+                        db.UsuarioLogs.Add(usuarioLog);
+
+                        db.SaveChangesWithTriggers(db.SaveChanges);
+
+                        foreach (var propery in auditEntry.Properties)
+                        {
+                            var usuarioLogValores = new UsuarioLogValores()
+                            {
+                                UsuarioLogId = usuarioLog.UsuarioLogId,
+                                NomePropriedade = propery.Name.ToString(),
+                                ValorAntigo = propery.Original != null ? propery.Original.ToString() : null,
+                                ValorNovo = propery.Current != null ? propery.Current.ToString() : null,
+                            };
+
+                            auditLogsValores.Add(usuarioLogValores);
+                        }
+
+                        db.UsuarioLogValores.AddRange(auditLogsValores);
+                    }
+
+                    db.SaveChangesWithTriggers(db.SaveChanges);
+                }
+            }
+        }
+
+        private static async Task ApplyAuditInUsuarioEntityAsync(MeuCantinhoDeEstudosContext db, AuditLogger audit)
+        {
+            //MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
+            List<UsuarioLogValores> auditLogsValores = new List<UsuarioLogValores>();
+
+            foreach (var entry in db.ChangeTracker.Entries().Where(e => e.Entity != null &&
                     typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
             {
                 if (entry.Entity.GetType().BaseType.Name == typeof(Usuario).Name ||
@@ -256,15 +298,63 @@ namespace MeuCantinhoDeEstudos3.Models
             }
         }
 
-        private static async void ApplyAuditInUsuarioInformacoesEntity(DbChangeTracker changeTracker, AuditLogger audit)
+        private static void ApplyAuditInUsuarioInformacoesEntity(MeuCantinhoDeEstudosContext db, AuditLogger audit)
         {
-            MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
             List<UsuarioInformacoesLogValores> auditLogsValores = new List<UsuarioInformacoesLogValores>();
 
-            foreach (var entry in changeTracker.Entries().Where(e => e.Entity != null &&
+            foreach (var entry in db.ChangeTracker.Entries().Where(e => e.Entity != null &&
                     typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
             {
-                if (entry.Entity.GetType().Name == typeof(UsuarioInformacoes).Name)
+                if (entry.Entity.GetType().Name == typeof(UsuarioInformacoes).Name ||
+                    entry.Entity.GetType().BaseType.Name == typeof(UsuarioInformacoes).Name)
+                {
+                    var log = audit.LastLog;
+
+                    foreach (var auditEntry in log.Entities)
+                    {
+                        UsuarioInformacoesLog usuarioInformacoesLog = new UsuarioInformacoesLog()
+                        {
+                            UsuarioInformacoesId = (int)entry.Property("UsuarioId").CurrentValue,
+                            Action = auditEntry.Action.ToString(),
+                            NomeTabela = auditEntry.EntityType.Name.ToString(),
+                            Data = log.Date,
+                            Valores = new List<UsuarioInformacoesLogValores>(),
+                        };
+
+                        db.UsuarioInformacoesLogs.Add(usuarioInformacoesLog);
+
+                        db.SaveChangesWithTriggers(db.SaveChanges);
+
+                        foreach (var property in auditEntry.Properties)
+                        {
+                            var usuarioInformacoesLogValores = new UsuarioInformacoesLogValores()
+                            {
+                                UsuarioInformacoesLogId = usuarioInformacoesLog.UsuarioInformacoesLogId,
+                                NomePropriedade = property.Name.ToString(),
+                                ValorAntigo = property.Original != null ? property.Original.ToString() : null,
+                                ValorNovo = property.Current != null ? property.Current.ToString() : null,
+                            };
+
+                            auditLogsValores.Add(usuarioInformacoesLogValores);
+                        }
+
+                        db.UsuarioInformacoesLogValores.AddRange(auditLogsValores);
+                    }
+
+                    db.SaveChangesWithTriggers(db.SaveChanges);
+                }
+            }
+        }
+
+        private static async Task ApplyAuditInUsuarioInformacoesEntityAsync(MeuCantinhoDeEstudosContext db, AuditLogger audit)
+        {
+            List<UsuarioInformacoesLogValores> auditLogsValores = new List<UsuarioInformacoesLogValores>();
+
+            foreach (var entry in db.ChangeTracker.Entries().Where(e => e.Entity != null &&
+                    typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
+            {
+                if (entry.Entity.GetType().Name == typeof(UsuarioInformacoes).Name ||
+                    entry.Entity.GetType().BaseType.Name == typeof(UsuarioInformacoes).Name)
                 {
                     var log = audit.LastLog;
 
@@ -283,14 +373,14 @@ namespace MeuCantinhoDeEstudos3.Models
 
                         await db.SaveChangesWithTriggersAsync(db.SaveChangesAsync);
 
-                        foreach (var propery in auditEntry.Properties)
+                        foreach (var property in auditEntry.Properties)
                         {
                             var usuarioInformacoesLogValores = new UsuarioInformacoesLogValores()
                             {
                                 UsuarioInformacoesLogId = usuarioInformacoesLog.UsuarioInformacoesLogId,
-                                NomePropriedade = propery.Name.ToString(),
-                                ValorAntigo = propery.Original != null ? propery.Original.ToString() : null,
-                                ValorNovo = propery.Current != null ? propery.Current.ToString() : null,
+                                NomePropriedade = property.Name.ToString(),
+                                ValorAntigo = property.Original != null ? property.Original.ToString() : null,
+                                ValorNovo = property.Current != null ? property.Current.ToString() : null,
                             };
 
                             auditLogsValores.Add(usuarioInformacoesLogValores);
@@ -307,16 +397,6 @@ namespace MeuCantinhoDeEstudos3.Models
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            //modelBuilder.Entity<Atividade>()
-            //    .HasOptional(c => c.Materia)
-            //    .WithMany()
-            //    .WillCascadeOnDelete(false);
-
-            //modelBuilder.Entity<Atividade>()
-            //    .HasOptional(c => c.Tema)
-            //    .WithMany()
-            //    .WillCascadeOnDelete(false);
         }
     }
 }
