@@ -78,6 +78,9 @@
     <Reference Include="FileHelpers, Version=3.5.0.0, Culture=neutral, PublicKeyToken=3e0c08d59cc3d657, processorArchitecture=MSIL">
       <HintPath>packages\FileHelpers.3.5.0\lib\net45\FileHelpers.dll</HintPath>
     </Reference>
+    <Reference Include="Humanizer, Version=2.11.0.0, Culture=neutral, PublicKeyToken=979442b78dfc278e, processorArchitecture=MSIL">
+      <HintPath>packages\Humanizer.Core.2.11.10\lib\netstandard2.0\Humanizer.dll</HintPath>
+    </Reference>
     <Reference Include="itextsharp, Version=5.5.7.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
       <HintPath>packages\iTextSharp.5.5.7\lib\itextsharp.dll</HintPath>
     </Reference>
@@ -416,6 +419,10 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\moment-with-locales.js" />
+    <Content Include="Scripts\moment-with-locales.min.js" />
+    <Content Include="Scripts\moment.js" />
+    <Content Include="Scripts\moment.min.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -483,6 +490,8 @@
     <Content Include="Views\Atividades\AtividadesReport.cshtml" />
     <Content Include="Views\VideoAulas\VideoAulasReport.cshtml" />
     <Content Include="Views\BateriasExercicios\BateriasExerciciosReport.cshtml" />
+    <Content Include="Scripts\moment.min.js.map" />
+    <Content Include="Scripts\moment-with-locales.min.js.map" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />

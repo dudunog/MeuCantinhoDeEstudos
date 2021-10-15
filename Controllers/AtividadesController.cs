@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ExcelDataReader;
+using Humanizer;
 using MeuCantinhoDeEstudos3.Mappers;
 using MeuCantinhoDeEstudos3.Models;
 using MeuCantinhoDeEstudos3.ViewModels;
@@ -65,6 +66,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 return HttpNotFound();
             
             }
+
+            var data = DateTime.Now.Humanize();
 
             AtividadeViewModel viewModel = mapper.Map<AtividadeViewModel>(atividade);
 

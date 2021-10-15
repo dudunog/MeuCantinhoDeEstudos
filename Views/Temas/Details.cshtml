@@ -1,4 +1,5 @@
 ﻿@model MeuCantinhoDeEstudos3.ViewModels.TemaViewModel
+@using Humanizer
 
 @{
     ViewBag.Title = "Detalhes";
@@ -32,9 +33,18 @@
             @Html.DisplayNameFor(model => model.DataCriacao)
         </dt>
 
-        <dd>
-            @Html.DisplayFor(model => model.DataCriacao)
-        </dd>
+        @if (@Convert.ToDateTime(DateTime.Now).Subtract(Model.DataCriacao).TotalDays > 2)
+        {
+            <dd>
+                @Model.DataCriacao.ToShortDateString() às @Model.DataCriacao.ToShortTimeString()
+            </dd>
+        }
+        else
+        {
+            <dd>
+                @Model.DataCriacao.Humanize(false)
+            </dd>
+        }
 
         <dt>
             @Html.DisplayNameFor(model => model.UsuarioCriacao)
@@ -48,10 +58,25 @@
             @Html.DisplayNameFor(model => model.UltimaModificacao)
         </dt>
 
-        <dd>
-            @Html.DisplayFor(model => model.UltimaModificacao)
-        </dd>
-
+        @if (Model.UltimaModificacao.HasValue)
+        {
+            if (@Convert.ToDateTime(DateTime.Now).Subtract(Model.UltimaModificacao.GetValueOrDefault()).TotalDays > 2)
+            {
+                <dd>
+                    @Model.UltimaModificacao.Value.ToShortDateString() às @Model.UltimaModificacao.Value.ToShortTimeString()
+                </dd>
+            }
+            else
+            {
+                <dd>
+                    @Model.UltimaModificacao.Humanize(false)
+                </dd>
+            }
+        }
+        else
+        {
+            <dd></dd>
+        }
     </dl>
 </div>
 
