@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - Meu cantinho de estudos</title>
+    <title>@ViewBag.Title | Meu cantinho de estudos</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
     @Styles.Render("~/Content/bootstrap-colorpicker/bootstrap-colorpicker/colorstyle")
@@ -12,7 +12,7 @@
 <body>
     @using StackExchange.Profiling
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar navbar-inverse navbar-fixed-top" style="background-color:#3298dc;border-color:#3298dc;">
         <div class="container">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -20,17 +20,20 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                @Html.ActionLink("Meu Cantinho de Estudos", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                @Html.ActionLink("Meu Cantinho de Estudos", "Index", "Home", new { area = "" }, new { @class = "navbar-brand", @style = "color:white;" })
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li>@Html.ActionLink("Home", "Index", "Home")</li>
-                    <li>@Html.ActionLink("About", "About", "Home")</li>
-                    <li>@Html.ActionLink("Matérias", "Index", "Materias")</li>
-                    <li>@Html.ActionLink("Temas", "Index", "Temas")</li>
-                    <li>@Html.ActionLink("Atividades", "Index", "Atividades")</li>
-                    <li>@Html.ActionLink("Vídeo-aulas", "Index", "VideoAulas")</li>
-                    <li>@Html.ActionLink("Exercicios", "Index", "BateriasExercicios")</li>
+                    <li>@Html.ActionLink("Sobre", "About", "Home", routeValues:null, htmlAttributes: new { @style = "color:white;" })</li>
+
+                    @if (Request.IsAuthenticated)
+                    {
+                        <li>@Html.ActionLink("Matérias", "Index", "Materias", new { @style = "color:white" })</li>
+                        <li>@Html.ActionLink("Temas", "Index", "Temas", new { @style = "color:white;" })</li>
+                        <li>@Html.ActionLink("Atividades", "Index", "Atividades", new { @style = "color:white;" })</li>
+                        <li>@Html.ActionLink("Vídeo-aulas", "Index", "VideoAulas", new { @style = "color:white;" })</li>
+                        <li>@Html.ActionLink("Exercicios", "Index", "BateriasExercicios", new { @style = "color:white;" })</li>
+                    }
                 </ul>
                 @Html.Partial("_LoginPartial")
             </div>
@@ -40,7 +43,7 @@
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; @DateTime.Now.Year - My ASP.NET Application</p>
+            <p>&copy; @DateTime.Now.Year - Meu cantinho de estudos</p>
         </footer>
 
 

@@ -3,31 +3,99 @@
 }
 
 <div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+    <h1>Nunca foi tão fácil organizar seus estudos</h1>
+    <p class="lead">Descubra como o Meu cantinho de estudos vai melhorar sua rotina e aumentar as suas chances de aprovação.</p>
+    <p>
+        @*<a href="https://asp.net" class="btn btn-primary btn-lg">Login &raquo;</a>
+            <a href="https://asp.net" class="btn btn-primary btn-lg">Criar conta &raquo;</a>*@
+
+        @Html.ActionLink("Login", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink", @class = "btn btn-primary btn-lg" })
+        @Html.ActionLink("Criar conta", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink", @class = "btn btn-primary btn-lg" })
+    </p>
 </div>
 
-@Html.ActionLink("Preencher meu endereço", "Create", "UsuarioInformacoes")
+<br />
+<br />
+<br />
 
 <div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-    </div>
+    <center>
+        <div class="col-md-4">
+            <img src="~/Content/images/cronometro_24dp.svg" alt="Cronômetro" width="45px" />
+            <i class="bi bi-volume-up"></i>
+            <h3>Cronômetro</h3>
+            <p>Contabilização do tempo líquido dos seus estudos, com pausa e retomada</p>
+            <div style="width:30px;border-width: 5px;border-top-color: #e7e7e7;margin-top: 23px;"></div>
+        </div>
+
+        <div class="col-md-4">
+            <img src="~/Content/images/cadastro_de_materias_24dp.svg" alt="Cadastro de matérias" width="45px" />
+            <h3>Cadastro de matérias</h3>
+            <p>Cadastro ilimitado dos seus estudos, agrupados por matérias e temas</p>
+        </div>
+
+        <div class="col-md-4">
+            <img src="~/Content/images/maior_organizacao_24dp.svg" alt="Maior organização" width="45px" />
+            <h3>Maior organização</h3>
+            <p>Identificação do estudo organizado por teoria, revisão ou exercícios</p>
+        </div>
+    </center>
+</div>
+
+<br />
+<br />
+<br />
+<br />
+
+<div class="row">
+    <center>
+        <div class="col-md-4">
+            <img src="~/Content/images/Estatisticas_de_estudo.svg" alt="Estatísticas de estudo" width="45px" />
+            <i class="bi bi-volume-up"></i>
+            <h3>Estatísticas de estudo</h3>
+            <p>Estatísticas de desempenho por tipos de estudo, matérias, temas e exercícios</p>
+            <div style="width:30px;border-width: 5px;border-top-color: #e7e7e7;margin-top: 23px;"></div>
+        </div>
+
+        <div class="col-md-4">
+            <img src="~/Content/images/cadastro_de_materias_24dp.svg" alt="Revisões Automáticas" width="45px" />
+            <h3>Revisões Automáticas</h3>
+            <p>Revisões personalizadas e geradas automaticamente pelo aplicativo</p>
+        </div>
+
+        <div class="col-md-4">
+            <img src="~/Content/images/calendario_de_estudos.svg" alt="Calendário de Estudos" width="45px" />
+            <h3>Calendário de Estudos</h3>
+            <p>Calendário de lembretes pessoais e anotações nos estudos efetuados</p>
+        </div>
+    </center>
+</div>
+
+<br />
+<br />
+<br />
+<br />
+
+<div class="row">
+    <center>
+        <div class="col-md-4">
+            <img src="~/Content/images/Multiplataforma.svg" alt="Multiplataforma" width="45px" />
+            <i class="bi bi-volume-up"></i>
+            <h3>Multiplataforma</h3>
+            <p>Seus estudos sempre organizados e disponíveis em qualquer dispositivo</p>
+            <div style="width:30px;border-width: 5px;border-top-color: #e7e7e7;margin-top: 23px;"></div>
+        </div>
+
+        <div class="col-md-4">
+            <img src="~/Content/images/Analises_Inteligentes.svg" alt="Análises Inteligentes" width="45px" />
+            <h3>Análises Inteligentes</h3>
+            <p>Comparativo de estudos por período e visão geral de sua performance</p>
+        </div>
+
+        <div class="col-md-4">
+            <img src="~/Content/images/E_muito_mais.svg" alt="E muito mais..." width="45px" />
+            <h3>E muito mais...</h3>
+            <p>Estamos sempre ouvindo a comunidade e implementando recursos incríveis.</p>
+        </div>
+    </center>
 </div>

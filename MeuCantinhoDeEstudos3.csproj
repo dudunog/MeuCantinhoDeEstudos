@@ -331,6 +331,14 @@
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\images\Analises_Inteligentes.svg" />
+    <Content Include="Content\images\calendario_de_estudos.svg" />
+    <Content Include="Content\images\cronometro_24dp.svg" />
+    <Content Include="Content\images\cadastro_de_materias_24dp.svg" />
+    <Content Include="Content\images\Estatisticas_de_estudo.svg" />
+    <Content Include="Content\images\E_muito_mais.svg" />
+    <Content Include="Content\images\maior_organizacao_24dp.svg" />
+    <Content Include="Content\images\Multiplataforma.png" />
     <Content Include="Content\jquery.fileupload.css" />
     <Content Include="Content\Materia.css" />
     <Content Include="Content\Tema.css" />
@@ -435,7 +443,6 @@
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Home\About.cshtml" />
-    <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Account\_ExternalLoginsListPartial.cshtml" />
     <Content Include="Views\Account\ConfirmEmail.cshtml" />

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+﻿using System.Web.Mvc;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
@@ -16,13 +12,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
         public ActionResult About()
         {
             ViewBag.Message = "O lugar ideal para você ter um estudo de alto rendimento!";
-
-            return View();
-        }
-
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
 
             return View();
         }
