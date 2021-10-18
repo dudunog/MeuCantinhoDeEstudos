@@ -20,6 +20,8 @@ namespace MeuCantinhoDeEstudos3.Mappers
                 mapper.CreateMap<BateriaExercicioViewModel, BateriaExercicio>();
                 mapper.CreateMap<Tema, TemaViewModel>();
                 mapper.CreateMap<TemaViewModel, Tema>();
+                mapper.CreateMap<Materia, MateriaViewModel>();
+                mapper.CreateMap<MateriaViewModel, Materia>();
             });
 
             Mapper = configuration.CreateMapper();

@@ -283,7 +283,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Mappers\AtividadeProfile.cs" />
     <Compile Include="Mappers\AutoMapperConfig.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Atividade.cs" />
@@ -297,6 +296,7 @@
     <Compile Include="Models\Interfaces\IEntidadeAuditada.cs" />
     <Compile Include="Models\Materia.cs" />
     <Compile Include="Models\Auditoria\MateriaAuditoria.cs" />
+    <Compile Include="Models\PaginatedList.cs" />
     <Compile Include="Models\Tema.cs" />
     <Compile Include="Models\Auditoria\TemaAuditoria.cs" />
     <Compile Include="Models\UsuarioInformacoes.cs" />
@@ -314,6 +314,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="ViewModels\AtividadeViewModel.cs" />
+    <Compile Include="ViewModels\MateriaViewModel.cs" />
     <Compile Include="ViewModels\TemaViewModel.cs" />
     <Compile Include="ViewModels\VideoAulaViewModel.cs" />
   </ItemGroup>

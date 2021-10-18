@@ -13,6 +13,9 @@ using System.Collections.Generic;
 using OfficeOpenXml;
 using System.Web;
 using RazorPDF;
+using MeuCantinhoDeEstudos3.ViewModels;
+using AutoMapper;
+using MeuCantinhoDeEstudos3.Mappers;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
@@ -21,23 +24,68 @@ namespace MeuCantinhoDeEstudos3.Controllers
     {
         private MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
 
+        private readonly IMapper mapper = AutoMapperConfig.Mapper;
+
         // GET: Materias
-        public async Task<ActionResult> Index(string search)
+        public async Task<ActionResult> Index(string ordemClassificacao, string filtroAtual, string search, int? numeroPagina)
         {
             var userId = User.Identity.GetUserId<int>();
 
             ViewBag.CurrentSearch = search;
+            ViewBag.ClassificacaoAtual = ordemClassificacao;
+            ViewBag.ParametroClassificacaoNome = string.IsNullOrEmpty(ordemClassificacao) ? "name_desc" : "";
+            ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
+
+            if (search != null)
+            {
+                numeroPagina = 1;
+            }
+            else
+            {
+                search = filtroAtual;
+            }
+
+            ViewBag.FiltroAtual = search;
 
             var materias = db.Materias
                            .Include(m => m.Usuario)
                            .Where(m => m.UsuarioId == userId);
+
+            switch (ordemClassificacao)
+            {
+                case "name_desc":
+                    materias = materias.OrderByDescending(m => m.Nome);
+                    break;
+                case "Date":
+                    materias = materias.OrderBy(m => m.DataCriacao);
+                    break;
+                case "date_desc":
+                    materias = materias.OrderByDescending(m => m.DataCriacao);
+                    break;
+                default:
+                    materias = materias.OrderBy(s => s.Nome);
+                    break;
+            }
+
 
             if (!string.IsNullOrEmpty(search))
             {
                 materias = materias.Where(m => m.Nome.ToUpper().Contains(search.ToUpper()));
             }
 
-            return View(await materias.ToListAsync());
+            //Return antigo
+            //return View(await materias.ToListAsync());
+
+            int tamanhoPagina = 100;
+            //return View(await PaginatedList<Materia>.CreateAsync(materias.OrderBy(m => m.MateriaId), numeroPagina ?? 1, tamanhoPagina));
+
+            //Return com mapper
+            var paginatedList = await PaginatedList<Materia>.CreateAsync(materias, numeroPagina ?? 1, tamanhoPagina);
+
+            IEnumerable<MateriaViewModel> viewModels =
+                mapper.Map<IEnumerable<MateriaViewModel>>(paginatedList.Items);
+
+            return View(paginatedList);
         }
 
         // GET: Materias/Details/5

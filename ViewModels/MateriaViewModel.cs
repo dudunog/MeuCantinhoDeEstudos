@@ -1,17 +1,15 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using MeuCantinhoDeEstudos3.Models;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MeuCantinhoDeEstudos3.Models
+namespace MeuCantinhoDeEstudos3.ViewModels
 {
-    public class Materia : IEntidadeAuditada<MateriaAuditoria>
+    public class MateriaViewModel : Entidade
     {
-        [Key]
         [DisplayName("Matéria")]
         public int MateriaId { get; set; }
+       
         public int UsuarioId { get; set; }
 
         [Required]
@@ -23,20 +21,8 @@ namespace MeuCantinhoDeEstudos3.Models
         [DisplayName("Cor de identificacao")]
         public string CorIdentificacao { get; set; }
 
-        [ForeignKey(nameof(UsuarioId))]
         public virtual Usuario Usuario { get; set; }
 
         public virtual ICollection<Tema> Temas { get; set; }
-
-        [DisplayName("Criado em")]
-        public DateTime DataCriacao { get; set; }
-
-        [DisplayName("Criado por")]
-        public string UsuarioCriacao { get; set; }
-
-        [DisplayName("Modificado em")]
-        public DateTime? UltimaModificacao { get; set; }
-
-        public string UsuarioModificacao { get; set; }
     }
 }

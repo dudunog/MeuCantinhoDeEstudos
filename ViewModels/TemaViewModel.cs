@@ -1,5 +1,4 @@
 ﻿using MeuCantinhoDeEstudos3.Models;
-using MeuCantinhoDeEstudos3.Models.Interfaces;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
