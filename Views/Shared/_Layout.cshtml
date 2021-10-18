@@ -28,11 +28,11 @@
 
                     @if (Request.IsAuthenticated)
                     {
-                        <li>@Html.ActionLink("Matérias", "Index", "Materias", new { @style = "color:white" })</li>
-                        <li>@Html.ActionLink("Temas", "Index", "Temas", new { @style = "color:white;" })</li>
-                        <li>@Html.ActionLink("Atividades", "Index", "Atividades", new { @style = "color:white;" })</li>
-                        <li>@Html.ActionLink("Vídeo-aulas", "Index", "VideoAulas", new { @style = "color:white;" })</li>
-                        <li>@Html.ActionLink("Exercicios", "Index", "BateriasExercicios", new { @style = "color:white;" })</li>
+                        <li>@Html.ActionLink("Matérias", "Index", "Materias", routeValues: null, new { @style = "color:white" })</li>
+                        <li>@Html.ActionLink("Temas", "Index", "Temas", routeValues: null, new { @style = "color:white;" })</li>
+                        <li>@Html.ActionLink("Atividades", "Index", "Atividades", routeValues: null, new { @style = "color:white;" })</li>
+                        <li>@Html.ActionLink("Vídeo-aulas", "Index", "VideoAulas", routeValues: null, new { @style = "color:white;" })</li>
+                        <li>@Html.ActionLink("Exercicios", "Index", "BateriasExercicios", routeValues: null, new { @style = "color:white;" })</li>
                     }
                 </ul>
                 @Html.Partial("_LoginPartial")
