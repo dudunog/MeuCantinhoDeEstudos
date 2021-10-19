@@ -31,7 +31,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.CurrentSearch = search;
+            ViewBag.CurrentSearch = !string.IsNullOrEmpty(search) ? search : filtroAtual;
             ViewBag.ClassificacaoAtual = ordemClassificacao;
             ViewBag.ParametroClassificacaoNome = string.IsNullOrEmpty(ordemClassificacao) ? "name_desc" : "";
             ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
