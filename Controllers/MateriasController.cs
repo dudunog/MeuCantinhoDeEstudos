@@ -67,19 +67,12 @@ namespace MeuCantinhoDeEstudos3.Controllers
                     break;
             }
 
-
             if (!string.IsNullOrEmpty(search))
             {
                 materias = materias.Where(m => m.Nome.ToUpper().Contains(search.ToUpper()));
             }
 
-            //Return antigo
-            //return View(await materias.ToListAsync());
-
             int tamanhoPagina = 100;
-            //return View(await PaginatedList<Materia>.CreateAsync(materias.OrderBy(m => m.MateriaId), numeroPagina ?? 1, tamanhoPagina));
-
-            //Return com mapper
             var paginatedList = await PaginatedList<Materia>.CreateAsync(materias, numeroPagina ?? 1, tamanhoPagina);
 
             IEnumerable<MateriaViewModel> viewModels =

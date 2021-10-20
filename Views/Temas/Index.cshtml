@@ -1,9 +1,14 @@
-﻿@model IEnumerable<MeuCantinhoDeEstudos3.ViewModels.TemaViewModel>
+﻿@model PaginatedList<MeuCantinhoDeEstudos3.Models.Tema>
+@using MeuCantinhoDeEstudos3.Models;
+@using Humanizer;
 
 @{
     ViewBag.Title = "Temas";
 
     <link rel="stylesheet" href="~/Content/Tema.css" />
+
+    var anteriorDesativado = !Model.TemPaginaAnterior ? "disabled" : "";
+    var proximaDesativado = !Model.TemProximaPagina ? "disabled" : "";
 }
 
 <div class="page-header">
@@ -20,13 +25,27 @@
                 <input type="text" class="form-control" name="search" placeholder="Tema" value="@ViewBag.CurrentSearch" />
                 <input type="submit" value="Pesquisar" class="btn btn-primary" /> |
                 @Html.ActionLink("Remover filtro", "Index")
+
+                @Html.ActionLink("Anterior", "Index", new
+                {
+                    @ordemClassificacao = ViewBag.ClassificacaoAtual,
+                    @numeroPagina = Model.IndicePagina - 1,
+                    @filtroAtual = ViewBag.FiltroAtual
+                }, new { @class = $"btn btn-default {anteriorDesativado}", @style = "margin-left:30px;" })
+
+                @Html.ActionLink("Próxima", "Index", new
+                {
+                    @ordemClassificacao = ViewBag.ClassificacaoAtual,
+                    @numeroPagina = Model.IndicePagina + 1,
+                    @filtroAtual = ViewBag.FiltroAtual
+                }, new { @class = $"btn btn-default {proximaDesativado}" })
             </div>
         </form>
 
         <div>
             @if (Model.Count() > 0)
             {
-                <p><b>@Model.Count()</b> atividade(s) cadastrada(s)</p>
+                <p>Mostrando <b>@Model.Count()</b> de <b>@Model.QuantidadeElementos</b> atividade(s) cadastrada(s).</p>
             }
             else
             {
@@ -48,28 +67,44 @@
 <table class="table">
     <tr>
         <th>
-            @Html.DisplayNameFor(model => model.Materia.Nome)
+            @Html.ActionLink("Tema", "Index", new { @ordemClassificacao = ViewBag.ParametroClassificacaoTema, @filtroAtual = ViewBag.FiltroAtual })
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Nome)
+            @Html.ActionLink("Matéria", "Index", new { @ordemClassificacao = ViewBag.ParametroClassificacaoMateria, @filtroAtual = ViewBag.FiltroAtual })
+        </th>
+        <th>
+            @Html.ActionLink("Data de criação", "Index", new { @ordemClassificacao = ViewBag.ParametroClassificacaoData, @filtroAtual = ViewBag.FiltroAtual })
         </th>
         <th></th>
     </tr>
 
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Materia.Nome)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Nome)
-        </td>
-        <td>
-            @Html.ActionLink("Editar", "Edit", new { id=item.TemaId }) |
-            @Html.ActionLink("Detalhes", "Details", new { id=item.TemaId }) |
-            @Html.ActionLink("Excluir", "Delete", new { id=item.TemaId })
-        </td>
-    </tr>
-}
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Nome)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Materia.Nome)
+            </td>
+            @if (@Convert.ToDateTime(DateTime.Now).Subtract(item.DataCriacao).TotalDays > 2)
+            {
+                <td>
+                    @item.DataCriacao.ToShortDateString() às @item.DataCriacao.ToShortTimeString()
+                </td>
+            }
+            else
+            {
+                <td>
+                    @item.DataCriacao.Humanize(false)
+                </td>
+            }
+            <td>
+                @Html.ActionLink("Editar", "Edit", new { id = item.TemaId }) |
+                @Html.ActionLink("Detalhes", "Details", new { id = item.TemaId }) |
+                @Html.ActionLink("Excluir", "Delete", new { id = item.TemaId })
+            </td>
+        </tr>
+    }
 
 </table>

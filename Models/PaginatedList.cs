@@ -45,6 +45,7 @@ namespace MeuCantinhoDeEstudos3.Models
         {
             var quantidade = await source.CountAsync();
             var items = await source.Skip((indicePagina - 1) * tamanhoPagina).Take(tamanhoPagina).ToListAsync();
+
             return new PaginatedList<T>(items, quantidade, indicePagina, tamanhoPagina);
         }
     }

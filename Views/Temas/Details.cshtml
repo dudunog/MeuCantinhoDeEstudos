@@ -3,6 +3,21 @@
 
 @{
     ViewBag.Title = "Detalhes";
+
+    /* O procesamento abaixo recupera a query string para poder voltar à página anterior
+    quando o usuário clicar na âncora 'Voltar' */
+
+    //Buscar a query string da rota anterior e coloca em um NameValueCollection
+    var queryStringValues = HttpUtility.ParseQueryString(@Request.UrlReferrer.Query);
+
+    //Cria um dicionário
+    IDictionary<string, object> routeValues = new Dictionary<string, object>();
+
+    //Adiciona cada Name e Value da query string ao dicionário
+    foreach (var queryString in queryStringValues.AllKeys)
+    {
+        routeValues.Add(queryString, queryStringValues[queryString.ToString()]);
+    }
 }
 
 <div class="page-header">
@@ -82,7 +97,7 @@
 
 <p>
     @Html.ActionLink("Editar", "Edit", new { id = Model.TemaId }) |
-    @Html.ActionLink("Voltar", "Index")
+    @Html.ActionLink("Voltar", "Index", new RouteValueDictionary(routeValues))
 </p>
 
 <br />

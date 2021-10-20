@@ -27,26 +27,66 @@ namespace MeuCantinhoDeEstudos3.Controllers
         private readonly IMapper mapper = AutoMapperConfig.Mapper;
 
         // GET: Temas
-        public async Task<ActionResult> Index(string search)
+        public async Task<ActionResult> Index(string ordemClassificacao, string filtroAtual, string search, int? numeroPagina)
         {
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.CurrentSearch = search;
+            ViewBag.CurrentSearch = !string.IsNullOrEmpty(search) ? search : filtroAtual;
+            ViewBag.ClassificacaoAtual = ordemClassificacao;
+            ViewBag.ParametroClassificacaoTema = string.IsNullOrEmpty(ordemClassificacao) ? "tema_desc" : "";
+            ViewBag.ParametroClassificacaoMateria = ordemClassificacao == "materia" ? "materia_desc" : "materia";
+            ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
+
+            if (search != null)
+            {
+                numeroPagina = 1;
+            }
+            else
+            {
+                search = filtroAtual;
+            }
+
+            ViewBag.FiltroAtual = search;
 
             var temas = db.Temas
                         .Include(t => t.Materia.Usuario)
                         .Include(t => t.Atividades)
                         .Where(t => t.Materia.UsuarioId == userId);
 
+            switch (ordemClassificacao)
+            {
+                case "materia":
+                    temas = temas.OrderBy(t => t.Materia.Nome);
+                    break;
+                case "materia_desc":
+                    temas = temas.OrderByDescending(t => t.Materia.Nome);
+                    break;
+                case "Date":
+                    temas = temas.OrderBy(t => t.DataCriacao);
+                    break;
+                case "date_desc":
+                    temas = temas.OrderByDescending(t => t.DataCriacao);
+                    break;
+                case "tema_desc":
+                    temas = temas.OrderByDescending(t => t.Nome);
+                    break;
+                default:
+                    temas = temas.OrderBy(t => t.Nome);
+                    break;
+            }
+
             if (!string.IsNullOrEmpty(search))
             {
                 temas = temas.Where(t => t.Nome.ToUpper().Contains(search.ToUpper()));
             }
 
-            IEnumerable<TemaViewModel> viewModels =
-                mapper.Map<IEnumerable<TemaViewModel>>(await temas.ToListAsync());
+            int tamanhoPagina = 100;
+            var paginatedList = await PaginatedList<Tema>.CreateAsync(temas, numeroPagina ?? 1, tamanhoPagina);
 
-            return View(viewModels);
+            //IEnumerable<TemaViewModel> viewModels =
+            //    mapper.Map<IEnumerable<TemaViewModel>>(paginatedList.Items);
+
+            return View(paginatedList);
         }
 
         // GET: Temas/Details/5
