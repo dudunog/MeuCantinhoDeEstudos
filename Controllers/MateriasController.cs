@@ -53,14 +53,14 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
             switch (ordemClassificacao)
             {
-                case "name_desc":
-                    materias = materias.OrderByDescending(m => m.Nome);
-                    break;
                 case "Date":
                     materias = materias.OrderBy(m => m.DataCriacao);
                     break;
                 case "date_desc":
                     materias = materias.OrderByDescending(m => m.DataCriacao);
+                    break;
+                case "name_desc":
+                    materias = materias.OrderByDescending(m => m.Nome);
                     break;
                 default:
                     materias = materias.OrderBy(s => s.Nome);

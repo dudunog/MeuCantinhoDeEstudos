@@ -28,25 +28,58 @@ namespace MeuCantinhoDeEstudos3.Controllers
         private readonly IMapper mapper = AutoMapperConfig.Mapper;
 
         // GET: Atividades
-        public async Task<ActionResult> Index(string search)
+        public async Task<ActionResult> Index(string ordemClassificacao, string filtroAtual, string search, int? numeroPagina)
         {
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.CurrentSearch = search;
+            ViewBag.CurrentSearch = !string.IsNullOrEmpty(search) ? search : filtroAtual;
+            ViewBag.ClassificacaoAtual = ordemClassificacao;
+            ViewBag.ParametroClassificacaoDescricao = string.IsNullOrEmpty(ordemClassificacao) ? "descricao_desc" : "";
+            ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
+
+            if (search != null)
+            {
+                numeroPagina = 1;
+            }
+            else
+            {
+                search = filtroAtual;
+            }
+
+            ViewBag.FiltroAtual = search;
 
             var atividades = db.Atividades
                              .Include(a => a.Tema.Materia)
                              .Where(a => a.Tema.Materia.UsuarioId == userId);
+
+            switch (ordemClassificacao)
+            {
+                case "Date":
+                    atividades = atividades.OrderBy(a => a.DataCriacao);
+                    break;
+                case "date_desc":
+                    atividades = atividades.OrderByDescending(a => a.DataCriacao);
+                    break;
+                case "descricao_desc":
+                    atividades = atividades.OrderByDescending(a => a.Descricao);
+                    break;
+                default:
+                    atividades = atividades.OrderBy(a => a.Descricao);
+                    break;
+            }
 
             if (!string.IsNullOrEmpty(search))
             {
                 atividades = atividades.Where(a => a.Descricao.ToUpper().Contains(search.ToUpper()));
             }
 
-            IEnumerable<AtividadeViewModel> viewModels =
-                mapper.Map<List<AtividadeViewModel>>(await atividades.ToListAsync());
+            int tamanhoPagina = 100;
+            var paginatedList = await PaginatedList<Atividade>.CreateAsync(atividades, numeroPagina ?? 1, tamanhoPagina);
 
-            return View(viewModels);
+            //IEnumerable<AtividadeViewModel> viewModels =
+            //    mapper.Map<List<AtividadeViewModel>>(await atividades.ToListAsync());
+
+            return View(paginatedList);
         }
 
         // GET: Atividades/Details/5
