@@ -1,9 +1,15 @@
-﻿@model IEnumerable<MeuCantinhoDeEstudos3.ViewModels.BateriaExercicioViewModel>
+﻿@*@model IEnumerable<MeuCantinhoDeEstudos3.ViewModels.BateriaExercicioViewModel>*@
+@model PaginatedList<MeuCantinhoDeEstudos3.Models.BateriaExercicio>
+@using MeuCantinhoDeEstudos3.Models;
+@using Humanizer
 
 @{
     ViewBag.Title = "Exercícios";
 
     <link rel="stylesheet" href="~/Content/BateriaExercicio.css" />
+
+    var anteriorDesativado = !Model.TemPaginaAnterior ? "disabled" : "";
+    var proximaDesativado = !Model.TemProximaPagina ? "disabled" : "";
 }
 
 <div class="page-header">
@@ -19,13 +25,27 @@
                 <input type="text" class="form-control" name="search" placeholder="Vídeoaula" value="@ViewBag.CurrentSearch" />
                 <input type="submit" value="Pesquisar" class="btn btn-primary" /> |
                 @Html.ActionLink("Remover filtro", "Index")
+
+                @Html.ActionLink("Anterior", "Index", new
+                {
+                    @ordemClassificacao = ViewBag.ClassificacaoAtual,
+                    @numeroPagina = Model.IndicePagina - 1,
+                    @filtroAtual = ViewBag.FiltroAtual
+                }, new { @class = $"btn btn-default {anteriorDesativado}", @style = "margin-left:30px;" })
+
+                @Html.ActionLink("Próxima", "Index", new
+                {
+                    @ordemClassificacao = ViewBag.ClassificacaoAtual,
+                    @numeroPagina = Model.IndicePagina + 1,
+                    @filtroAtual = ViewBag.FiltroAtual
+                }, new { @class = $"btn btn-default {proximaDesativado}" })
             </div>
         </form>
 
         <div>
             @if (Model.Count() > 0)
             {
-                <p><b>@Model.Count()</b> atividade(s) cadastrada(s)</p>
+                <p>Mostrando <b>@Model.Count()</b> de <b>@Model.QuantidadeElementos</b> atividade(s) cadastrada(s).</p>
             }
             else
             {
@@ -46,22 +66,30 @@
 <table class="table">
     <tr>
         <th>
-            @Html.DisplayNameFor(model => model.Descricao)
+            @Html.ActionLink("Descricao", "Index", new { @ordemClassificacao = ViewBag.ParametroClassificacaoDescricao, @filtroAtual = ViewBag.FiltroAtual })
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Tema.Materia.Nome)
+            @*@Html.DisplayNameFor(model => model.Tema.Materia.Nome)*@
+            @Html.ActionLink("Matéria", "Index", new { @ordemClassificacao = ViewBag.ParametroClassificacaoMateria, @filtroAtual = ViewBag.FiltroAtual })
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Tema.Nome)
+            @*@Html.DisplayNameFor(model => model.Tema.Nome)*@
+            @Html.ActionLink("Tema", "Index", new { @ordemClassificacao = ViewBag.ParametroClassificacaoTema, @filtroAtual = ViewBag.FiltroAtual })
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.QuantidadeExercicios)
+            @*@Html.DisplayNameFor(model => model.QuantidadeExercicios)*@
+            @Html.ActionLink("Quantidade de exercícios", "Index", new { @ordemClassificacao = ViewBag.ParametroClassificacaoQuantidadeExercicios, @filtroAtual = ViewBag.FiltroAtual })
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.QuantidadeAcertos)
+            @*@Html.DisplayNameFor(model => model.QuantidadeAcertos)*@
+            @Html.ActionLink("Quantidade de acertos", "Index", new { @ordemClassificacao = ViewBag.ParametroClassificacaoQuantidadeAcertos, @filtroAtual = ViewBag.FiltroAtual })
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Aproveitamento)
+            @*@Html.DisplayNameFor(model => model.Aproveitamento)*@
+            @Html.ActionLink("Aproveitamento", "Index", new { @ordemClassificacao = ViewBag.ParametroClassificacaoAproveitamento, @filtroAtual = ViewBag.FiltroAtual })
+        </th>
+        <th>
+            @Html.ActionLink("Data de criação", "Index", new { @ordemClassificacao = ViewBag.ParametroClassificacaoData, @filtroAtual = ViewBag.FiltroAtual })
         </th>
         <th></th>
     </tr>
@@ -87,6 +115,18 @@
             <td>
                 @item.Aproveitamento.ToString("N2")%
             </td>
+            @if (@Convert.ToDateTime(DateTime.Now).Subtract(item.DataCriacao).TotalDays > 2)
+            {
+                <td>
+                    @item.DataCriacao.ToShortDateString() às @item.DataCriacao.ToShortTimeString()
+                </td>
+            }
+            else
+            {
+                <td>
+                    @item.DataCriacao.Humanize(false)
+                </td>
+            }
             <td>
                 @Html.ActionLink("Editar", "Edit", new { id = item.AtividadeId }) |
                 @Html.ActionLink("Detalhes", "Details", new { id = item.AtividadeId }) |

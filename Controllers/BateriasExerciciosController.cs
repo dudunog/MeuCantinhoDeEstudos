@@ -28,25 +28,93 @@ namespace MeuCantinhoDeEstudos3.Controllers
         private readonly IMapper mapper = AutoMapperConfig.Mapper;
 
         // GET: BateriaExercicios
-        public async Task<ActionResult> Index(string search)
+        public async Task<ActionResult> Index(string ordemClassificacao, string filtroAtual, string search, int? numeroPagina)
         {
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.CurrentSearch = search;
+            ViewBag.CurrentSearch = !string.IsNullOrEmpty(search) ? search : filtroAtual;
+            ViewBag.ClassificacaoAtual = ordemClassificacao;
+            ViewBag.ParametroClassificacaoDescricao = string.IsNullOrEmpty(ordemClassificacao) ? "descricao_desc" : "";
+            ViewBag.ParametroClassificacaoMateria = ordemClassificacao == "materia" ? "materia_desc" : "materia";
+            ViewBag.ParametroClassificacaoTema = ordemClassificacao == "tema" ? "tema_desc" : "tema";
+            ViewBag.ParametroClassificacaoQuantidadeExercicios = ordemClassificacao == "quantidade_exercicios" ? "quantidade_exercicios_desc" : "quantidade_exercicios";
+            ViewBag.ParametroClassificacaoQuantidadeAcertos = ordemClassificacao == "quantidade_acertos" ? "quantidade_acertos_desc" : "quantidade_acertos";
+            ViewBag.ParametroClassificacaoAproveitamento = ordemClassificacao == "aproveitamento" ? "aproveitamento_desc" : "aproveitamento";
+            ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
+
+            if (search != null)
+            {
+                numeroPagina = 1;
+            }
+            else
+            {
+                search = filtroAtual;
+            }
+
+            ViewBag.FiltroAtual = search;
 
             var bateriasExercicios = db.BateriasExercicios
                                     .Include(b => b.Tema.Materia)
                                     .Where(b => b.Tema.Materia.UsuarioId == userId);
+
+            switch (ordemClassificacao)
+            {
+                case "materia":
+                    bateriasExercicios = bateriasExercicios.OrderBy(b => b.Tema.Materia.Nome);
+                    break;
+                case "materia_desc":
+                    bateriasExercicios = bateriasExercicios.OrderByDescending(b => b.Tema.Materia.Nome);
+                    break;
+                case "tema":
+                    bateriasExercicios = bateriasExercicios.OrderBy(b => b.Tema.Nome);
+                    break;
+                case "tema_desc":
+                    bateriasExercicios = bateriasExercicios.OrderByDescending(b => b.Tema.Nome);
+                    break;
+                case "quantidade_exercicios":
+                    bateriasExercicios = bateriasExercicios.OrderBy(b => b.QuantidadeExercicios);
+                    break;
+                case "quantidade_exercicios_desc":
+                    bateriasExercicios = bateriasExercicios.OrderByDescending(b => b.QuantidadeExercicios);
+                    break;
+                case "quantidade_acertos":
+                    bateriasExercicios = bateriasExercicios.OrderBy(b => b.QuantidadeAcertos);
+                    break;
+                case "quantidade_acertos_desc":
+                    bateriasExercicios = bateriasExercicios.OrderByDescending(b => b.QuantidadeAcertos);
+                    break;
+                case "aproveitamento":
+                    bateriasExercicios = bateriasExercicios.OrderBy(b => b.Aproveitamento);
+                    break;
+                case "aproveitamento_desc":
+                    bateriasExercicios = bateriasExercicios.OrderByDescending(b => b.Aproveitamento);
+                    break;
+                case "Date":
+                    bateriasExercicios = bateriasExercicios.OrderBy(a => a.DataCriacao);
+                    break;
+                case "date_desc":
+                    bateriasExercicios = bateriasExercicios.OrderByDescending(a => a.DataCriacao);
+                    break;
+                case "descricao_desc":
+                    bateriasExercicios = bateriasExercicios.OrderByDescending(a => a.Descricao);
+                    break;
+                default:
+                    bateriasExercicios = bateriasExercicios.OrderBy(a => a.Descricao);
+                    break;
+            }
 
             if (!string.IsNullOrEmpty(search))
             {
                 bateriasExercicios = bateriasExercicios.Where(a => a.Descricao.ToUpper().Contains(search.ToUpper()));
             }
 
-            IEnumerable<BateriaExercicioViewModel> viewModels =
-                mapper.Map<IEnumerable<BateriaExercicioViewModel>>(await bateriasExercicios.ToListAsync());
+            int tamanhoPagina = 100;
+            var paginatedList = await PaginatedList<BateriaExercicio>.CreateAsync(bateriasExercicios, numeroPagina ?? 1, tamanhoPagina);
 
-            return View(viewModels);
+            //IEnumerable<BateriaExercicioViewModel> viewModels =
+            //    mapper.Map<IEnumerable<BateriaExercicioViewModel>>(await bateriasExercicios.ToListAsync());
+
+            return View(paginatedList);
         }
 
         // GET: BateriaExercicios/Details/5
