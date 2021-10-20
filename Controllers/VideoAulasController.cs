@@ -27,25 +27,58 @@ namespace MeuCantinhoDeEstudos3.Controllers
         private readonly IMapper mapper = AutoMapperConfig.Mapper;
 
         // GET: VideoAulas
-        public async Task<ActionResult> Index(string search)
+        public async Task<ActionResult> Index(string ordemClassificacao, string filtroAtual, string search, int? numeroPagina)
         {
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.CurrentSearch = search;
+            ViewBag.CurrentSearch = !string.IsNullOrEmpty(search) ? search : filtroAtual;
+            ViewBag.ClassificacaoAtual = ordemClassificacao;
+            ViewBag.ParametroClassificacaoDescricao = string.IsNullOrEmpty(ordemClassificacao) ? "descricao_desc" : "";
+            ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
+
+            if (search != null)
+            {
+                numeroPagina = 1;
+            }
+            else
+            {
+                search = filtroAtual;
+            }
+
+            ViewBag.FiltroAtual = search;
 
             var videoAulas = db.VideoAulas
                              .Include(v => v.Tema.Materia)
                              .Where(v => v.Tema.Materia.UsuarioId == userId);
+
+            switch (ordemClassificacao)
+            {
+                case "Date":
+                    videoAulas = videoAulas.OrderBy(a => a.DataCriacao);
+                    break;
+                case "date_desc":
+                    videoAulas = videoAulas.OrderByDescending(a => a.DataCriacao);
+                    break;
+                case "descricao_desc":
+                    videoAulas = videoAulas.OrderByDescending(a => a.Descricao);
+                    break;
+                default:
+                    videoAulas = videoAulas.OrderBy(a => a.Descricao);
+                    break;
+            }
 
             if (!string.IsNullOrEmpty(search))
             {
                 videoAulas = videoAulas.Where(v => v.Descricao.ToUpper().Contains(search.ToUpper()));
             }
 
-            IEnumerable<VideoAulaViewModel> viewModels =
-                mapper.Map<IEnumerable<VideoAulaViewModel>>(await videoAulas.ToListAsync());
+            int tamanhoPagina = 100;
+            var paginatedList = await PaginatedList<VideoAula>.CreateAsync(videoAulas, numeroPagina ?? 1, tamanhoPagina);
 
-            return View(viewModels);
+            //IEnumerable<VideoAulaViewModel> viewModels =
+            //    mapper.Map<IEnumerable<VideoAulaViewModel>>(await videoAulas.ToListAsync());
+
+            return View(paginatedList);
         }
 
         // GET: VideoAulas/Details/5
