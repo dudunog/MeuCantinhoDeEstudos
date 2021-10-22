@@ -108,19 +108,20 @@ namespace MeuCantinhoDeEstudos3.Controllers
         }
 
         // GET: Atividades/Create
-        public ActionResult Create()
+        public async Task<ActionResult> Create()
         {
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.MateriaId =
-                new SelectList(db.Materias
-                                .Where(m => m.UsuarioId == userId).ToList(),
+            AtividadeViewModel viewModel = new AtividadeViewModel
+            {
+                Materias = new SelectList(await db.Materias
+                                .Where(m => m.UsuarioId == userId).ToListAsync(),
                                 "MateriaId",
-                                "Nome");
+                                "Nome"),
+                Temas = new SelectList(Enumerable.Empty<SelectListItem>())
+            };
 
-            ViewBag.TemaId = new SelectList(Enumerable.Empty<SelectListItem>());
-
-            return View();
+            return View(viewModel);
         }
 
         // POST: Atividades/Create
@@ -242,44 +243,62 @@ namespace MeuCantinhoDeEstudos3.Controllers
         public async Task<ActionResult> ImportarExcel()
         {
             var userId = User.Identity.GetUserId<int>();
-            var postedFile = Request.Files[0];
-            var atividades = new List<Atividade>();
-
-            IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
-
-            DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
+            
+            if (Request.Files.Count > 0)
             {
-                ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
-                {
-                    UseHeaderRow = true,
-                }
-            });
+                var postedFile = Request.Files[0];
+                var atividades = new List<Atividade>();
 
-            while (excelReader.Read())
-            {
-                if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1)))
+                IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
+
+                DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
                 {
-                    atividades.Add(new Atividade
+                    ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
                     {
-                        TemaId = int.Parse(excelReader.GetValue(0).ToString()),
-                        Descricao = excelReader.GetString(1),
-                        DataCriacao = DateTime.Now,
-                        UsuarioCriacao = User.Identity.GetUserName(),
-                    });
+                        UseHeaderRow = true,
+                    }
+                });
+
+                while (excelReader.Read())
+                {
+                    if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1)))
+                    {
+                        atividades.Add(new Atividade
+                        {
+                            TemaId = int.Parse(excelReader.GetValue(0).ToString()),
+                            Descricao = excelReader.GetString(1),
+                            DataCriacao = DateTime.Now,
+                            UsuarioCriacao = User.Identity.GetUserName(),
+                        });
+                    }
                 }
+
+                excelReader.Close();
+
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    db.Atividades.AddRange(atividades);
+                    await db.BulkSaveChangesAsync();
+
+                    scope.Complete();
+                }
+
+                return RedirectToAction("Index");
             }
 
-            excelReader.Close();
+            var materias = db.Materias
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            AtividadeViewModel viewModel = new AtividadeViewModel
             {
-                db.Atividades.AddRange(atividades);
-                await db.BulkSaveChangesAsync();
+                Materias = new SelectList(await materias.ToListAsync(), "MateriaId", "Nome"),
+                Temas = new SelectList(Enumerable.Empty<SelectListItem>())
+            };
 
-                scope.Complete();
-            }
+            ModelState.AddModelError("", "O arquivo é obrigatório.");
 
-            return RedirectToAction("Index");
+            return View("Create", viewModel);
         }
 
         [HttpGet]

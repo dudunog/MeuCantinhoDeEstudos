@@ -246,45 +246,63 @@ namespace MeuCantinhoDeEstudos3.Controllers
         public async Task<ActionResult> ImportarExcel()
         {
             var userId = User.Identity.GetUserId<int>();
-            var postedFile = Request.Files[0];
-            var videoAulas = new List<VideoAula>();
-
-            IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
-
-            DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
+            
+            if (Request.Files.Count > 0)
             {
-                ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
-                {
-                    UseHeaderRow = true,
-                }
-            });
+                var postedFile = Request.Files[0];
+                var videoAulas = new List<VideoAula>();
 
-            while (excelReader.Read())
-            {
-                if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1) || excelReader.IsDBNull(2)))
+                IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
+
+                DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
                 {
-                    videoAulas.Add(new VideoAula
+                    ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
                     {
-                        TemaId = int.Parse(excelReader.GetValue(0).ToString()),
-                        Descricao = excelReader.GetString(1),
-                        LinkVideo = excelReader.GetString(2),
-                        DataCriacao = DateTime.Now,
-                        UsuarioCriacao = User.Identity.GetUserName(),
-                    });
+                        UseHeaderRow = true,
+                    }
+                });
+
+                while (excelReader.Read())
+                {
+                    if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1) || excelReader.IsDBNull(2)))
+                    {
+                        videoAulas.Add(new VideoAula
+                        {
+                            TemaId = int.Parse(excelReader.GetValue(0).ToString()),
+                            Descricao = excelReader.GetString(1),
+                            LinkVideo = excelReader.GetString(2),
+                            DataCriacao = DateTime.Now,
+                            UsuarioCriacao = User.Identity.GetUserName(),
+                        });
+                    }
                 }
+
+                excelReader.Close();
+
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    db.VideoAulas.AddRange(videoAulas);
+                    await db.BulkSaveChangesAsync();
+
+                    scope.Complete();
+                }
+
+                return RedirectToAction("Index");
             }
 
-            excelReader.Close();
+            var materias = db.Materias
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            VideoAulaViewModel viewModel = new VideoAulaViewModel
             {
-                db.VideoAulas.AddRange(videoAulas);
-                await db.BulkSaveChangesAsync();
+                Materias = new SelectList(await materias.ToListAsync(), "MateriaId", "Nome"),
+                Temas = new SelectList(Enumerable.Empty<SelectListItem>())
+            };
 
-                scope.Complete();
-            }
+            ModelState.AddModelError("", "O arquivo é obrigatório.");
 
-            return RedirectToAction("Index");
+            return View("Create", viewModel);
         }
 
         [HttpGet]

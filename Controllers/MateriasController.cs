@@ -16,6 +16,7 @@ using RazorPDF;
 using MeuCantinhoDeEstudos3.ViewModels;
 using AutoMapper;
 using MeuCantinhoDeEstudos3.Mappers;
+using System.Net.Mime;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
@@ -229,45 +230,54 @@ namespace MeuCantinhoDeEstudos3.Controllers
         public async Task<ActionResult> ImportarExcel()
         {
             var userId = User.Identity.GetUserId<int>();
-            var postedFile = Request.Files[0];
-            var materias = new List<Materia>();
-
-            IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
-
-            DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
+            
+            if (Request.Files.Count > 0)
             {
-                ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
-                {
-                    UseHeaderRow = true,
-                }
-            });
+                var postedFile = Request.Files[0];
 
-            while (excelReader.Read())
-            {
-                if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1)))
+                var materias = new List<Materia>();
+
+                IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
+
+                DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
                 {
-                    materias.Add(new Materia
+                    ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
                     {
-                        Nome = excelReader.GetString(0),
-                        CorIdentificacao = excelReader.GetString(1),
-                        UsuarioId = userId,
-                        DataCriacao = DateTime.Now,
-                        UsuarioCriacao = User.Identity.GetUserName(),
-                    });
+                        UseHeaderRow = true,
+                    }
+                });
+
+                while (excelReader.Read())
+                {
+                    if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1)))
+                    {
+                        materias.Add(new Materia
+                        {
+                            Nome = excelReader.GetString(0),
+                            CorIdentificacao = excelReader.GetString(1),
+                            UsuarioId = userId,
+                            DataCriacao = DateTime.Now,
+                            UsuarioCriacao = User.Identity.GetUserName(),
+                        });
+                    }
                 }
+
+                excelReader.Close();
+
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    db.BulkInsert(materias);
+                    await db.BulkSaveChangesAsync();
+
+                    scope.Complete();
+                }
+
+                return RedirectToAction("Index");
             }
 
-            excelReader.Close();
+            ModelState.AddModelError("", "O arquivo é obrigatório.");
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                db.BulkInsert(materias);
-                await db.BulkSaveChangesAsync();
-
-                scope.Complete();
-            }
-
-            return RedirectToAction("Index");
+            return View("Create");
         }
 
         [HttpGet]

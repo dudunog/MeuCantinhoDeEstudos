@@ -85,22 +85,25 @@
                 <div class="modal-body">
                     <span class="text-muted">Aqui você pode importar arquivo(s) excel contendo exercício(s).</span>
 
-                    @*<span class="btn btn-default fileinput-button">
+                    <br />
+                    <br />
+
+                    <span class="btn btn-default fileinput-button">
                         <i class="glyphicon glyphicon-plus"></i>
                         <span>Adicionar arquivo(s)</span>
                         <input type="file" id="inputFileUpload" multiple />
-                    </span>*@
+                    </span>
 
                     <div id="response"></div>
 
                 </div>
                 <div class="modal-footer">
                     <a href="#myModal" data-dismiss="modal" class="btn btn-default">Fechar</a>
-                    @*<button type="submit" id="btnImportar" class="btn btn-primary">Importar</button>*@
-                    <span class="btn btn-primary fileinput-button">
+                    <button type="submit" id="btnImportar" class="btn btn-primary">Importar</button>
+                    @*<span class="btn btn-primary fileinput-button">
                         <span>Importar arquivo(s)</span>
                         <input type="file" id="inputFileUpload" multiple />
-                    </span>
+                    </span>*@
                 </div>
             </form>
         </div>
@@ -140,17 +143,23 @@
         //Faz o upload do arquivo excel
         $(document).ready(function () {
             $('#inputFileUpload').fileupload({
-                dataType: 'json',
                 url: 'ImportarExcel',
-                //autoUpload: true,
                 add: function (e, data) {
-                    data.submit();
+                    $("#response").empty();
+
+                    $('#btnImportar').one('click', function (e) {
+                        e.preventDefault();
+                        data.submit();
+                    });
+                },
+                done: function (e, data) {
                     $("#response").append("<br />");
                     $("#response").append("<div class='alert alert-success' style='margin-bottom: 5px;'><p>Arquivo(s) importado(s) com sucesso. Você pode fechar este modal.</p></div>");
+                },
+                progress: function (e, data) {
+                    var progress = parseInt(data.loaded / data.total * 100, 10);
+                    $('.progress .progress-bar').css('width', progress + '%');
                 }
-            }).on('fileuploadprogressall', function (e, data) {
-                var progress = parseInt(data.loaded / data.total * 100, 10);
-                $('.progress .progress-bar').css('width', progress + '%');
             });
         });
     </script>

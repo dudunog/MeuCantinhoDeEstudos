@@ -270,60 +270,77 @@ namespace MeuCantinhoDeEstudos3.Controllers
         public async Task<ActionResult> ImportarExcel()
         {
             var userId = User.Identity.GetUserId<int>();
-            var postedFile = Request.Files[0];
-            List<Tema> temas = new List<Tema>();
-
-            IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
-
-            DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
+            
+            if (Request.Files.Count > 0)
             {
-                ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
-                {
-                    UseHeaderRow = true,
-                }
-            });
+                var postedFile = Request.Files[0];
+                List<Tema> temas = new List<Tema>();
 
-            while (excelReader.Read())
-            {
-                try
+                IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
+
+                DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
                 {
-                    if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1)))
+                    ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
                     {
-                        temas.Add(new Tema
+                        UseHeaderRow = true,
+                    }
+                });
+
+                while (excelReader.Read())
+                {
+                    try
+                    {
+                        if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1)))
                         {
-                            MateriaId = int.Parse(excelReader.GetValue(0).ToString()),
-                            Nome = excelReader.GetString(1),
-                            DataCriacao = DateTime.Now,
-                            UsuarioCriacao = User.Identity.GetUserName(),
-                        });
+                            temas.Add(new Tema
+                            {
+                                MateriaId = int.Parse(excelReader.GetValue(0).ToString()),
+                                Nome = excelReader.GetString(1),
+                                DataCriacao = DateTime.Now,
+                                UsuarioCriacao = User.Identity.GetUserName(),
+                            });
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        throw new Exception();
                     }
                 }
-                catch (Exception e)
+
+                excelReader.Close();
+
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    Console.WriteLine(e.Message);
-                    throw new Exception();
+                    try
+                    {
+                        db.Temas.AddRange(temas);
+                        await db.BulkSaveChangesAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        throw new Exception();
+                    }
+
+                    scope.Complete();
                 }
+
+                return RedirectToAction("Index");
             }
 
-            excelReader.Close();
+            var materias = db.Materias
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            TemaViewModel viewModel = new TemaViewModel
             {
-                try
-                {
-                    db.Temas.AddRange(temas);
-                    await db.BulkSaveChangesAsync();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                    throw new Exception();
-                }
+                Materias = new SelectList(await materias.ToListAsync(), "MateriaId", "Nome")
+            };
 
-                scope.Complete();
-            }
+            ModelState.AddModelError("", "O arquivo é obrigatório.");
 
-            return RedirectToAction("Index");
+            return View("Create", viewModel);
         }
 
         [HttpGet]

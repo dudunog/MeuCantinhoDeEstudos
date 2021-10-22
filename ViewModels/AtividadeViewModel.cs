@@ -20,7 +20,9 @@ namespace MeuCantinhoDeEstudos3.ViewModels
         public string Descricao { get; set; }
 
         public virtual Tema Tema { get; set; }
+
         public SelectList Materias { get; set; }
+
         public SelectList Temas { get; set; }
     }
 }
