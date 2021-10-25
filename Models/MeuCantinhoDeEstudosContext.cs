@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Validation;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using FastMember;
 using MeuCantinhoDeEstudos3.Models.Interfaces;
 using Microsoft.AspNet.Identity.EntityFramework;
@@ -13,6 +11,7 @@ using MeuCantinhoDeEstudos3.Models.ClassesDeLog;
 using EntityFramework.Extensions;
 using EntityFramework.Audit;
 using EntityFramework.Triggers;
+using MeuCantinhoDeEstudos3.Extensions;
 
 namespace MeuCantinhoDeEstudos3.Models
 {
@@ -41,25 +40,6 @@ namespace MeuCantinhoDeEstudos3.Models
         public DbSet<UsuarioInformacoesLog> UsuarioInformacoesLogs { get; set; }
         public DbSet<UsuarioInformacoesLogValores> UsuarioInformacoesLogValores { get; set; }
 
-        public static bool IsAssignableToGenericType(Type givenType, Type genericType)
-        {
-            var interfaceTypes = givenType.GetInterfaces();
-
-            foreach (var it in interfaceTypes)
-            {
-                if (it.IsGenericType && it.GetGenericTypeDefinition() == genericType)
-                    return true;
-            }
-
-            if (givenType.IsGenericType && givenType.GetGenericTypeDefinition() == genericType)
-                return true;
-
-            Type baseType = givenType.BaseType;
-            if (baseType == null) return false;
-
-            return IsAssignableToGenericType(baseType, genericType);
-        }
-
         public override int SaveChanges()
         {
             try
@@ -68,7 +48,7 @@ namespace MeuCantinhoDeEstudos3.Models
                     // IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade<>))))
                     typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
                 {
-                    ApplyCreationAndModificationProperts(entry);
+                    MyDbContextExtensions.ApplyCreationAndModificationProperts(entry);
                 }
 
                 var audit = this.BeginAudit();
@@ -92,7 +72,7 @@ namespace MeuCantinhoDeEstudos3.Models
             }
 
             foreach (var entidade in ChangeTracker.Entries().Where(e => e.Entity != null &&
-                    IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidadeAuditada<>))))
+                    MyDbContextExtensions.IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidadeAuditada<>))))
                     // typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
             {
                 var tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[0].GenericTypeArguments[0];
@@ -122,7 +102,7 @@ namespace MeuCantinhoDeEstudos3.Models
                     //IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade))))
                     typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
                 {
-                    ApplyCreationAndModificationProperts(entry);
+                    MyDbContextExtensions.ApplyCreationAndModificationProperts(entry);
                 }
 
                 var audit = this.BeginAudit();
@@ -147,7 +127,7 @@ namespace MeuCantinhoDeEstudos3.Models
             }
 
             foreach (var entidade in ChangeTracker.Entries().Where(e => e.Entity != null &&
-                    IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidadeAuditada<>))))
+                    MyDbContextExtensions.IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidadeAuditada<>))))
                     // typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
             {
                 var tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[0].GenericTypeArguments[0];
@@ -166,39 +146,6 @@ namespace MeuCantinhoDeEstudos3.Models
             }
 
             return await this.SaveChangesWithTriggersAsync(base.SaveChangesAsync);
-        }
-
-        private static void ApplyCreationAndModificationProperts(DbEntityEntry entry)
-        {
-            var currentTime = DateTime.Now;
-
-            if (entry.State == EntityState.Added)
-            {
-
-                if (entry.Property("DataCriacao") != null)
-                {
-                    entry.Property("DataCriacao").CurrentValue = currentTime;
-                }
-                if (entry.Property("UsuarioCriacao") != null)
-                {
-                    entry.Property("UsuarioCriacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
-                }
-            }
-
-            if (entry.State == EntityState.Modified)
-            {
-                entry.Property("DataCriacao").IsModified = false;
-                entry.Property("UsuarioCriacao").IsModified = false;
-
-                if (entry.Property("UltimaModificacao") != null)
-                {
-                    entry.Property("UltimaModificacao").CurrentValue = currentTime;
-                }
-                if (entry.Property("UsuarioModificacao") != null)
-                {
-                    entry.Property("UsuarioModificacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
-                }
-            }
         }
 
         private static void ApplyAuditInUsuarioEntity(MeuCantinhoDeEstudosContext db, AuditLogger audit)

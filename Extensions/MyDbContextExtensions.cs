@@ -134,7 +134,7 @@ namespace MeuCantinhoDeEstudos3.Extensions
             await @this.BulkSaveChangesAsync();
         }
 
-        private static void ApplyCreationAndModificationProperts(DbEntityEntry entry)
+        public static void ApplyCreationAndModificationProperts(DbEntityEntry entry)
         {
             var currentTime = DateTime.Now;
 
