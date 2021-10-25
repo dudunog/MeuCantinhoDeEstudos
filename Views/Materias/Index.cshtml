@@ -55,6 +55,7 @@
 
             <div>
                 @Html.ActionLink("Adicionar matéria", "Create") |
+                @Html.ActionLink("Atualizar por excel", "AtualizarPorExcel") |
                 @Html.ActionLink("Gerar Excel", "GerarRelatorioExcel", new { @search = ViewBag.CurrentSearch }) |
                 @Html.ActionLink("Gerar PDF", "GerarRelatorioPDF", new { @search = ViewBag.CurrentSearch })
             </div>

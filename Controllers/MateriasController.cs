@@ -16,12 +16,12 @@ using RazorPDF;
 using MeuCantinhoDeEstudos3.ViewModels;
 using AutoMapper;
 using MeuCantinhoDeEstudos3.Mappers;
-using System.Net.Mime;
+using MeuCantinhoDeEstudos3.Extensions;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
     [Authorize]
-    public class MateriasController : Controller
+    public class MateriasController : System.Web.Mvc.Controller
     {
         private MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
 
@@ -227,7 +227,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> ImportarExcel()
+        public async Task<ActionResult> InserirPorExcel()
         {
             var userId = User.Identity.GetUserId<int>();
             
@@ -266,8 +266,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    db.BulkInsert(materias);
-                    await db.BulkSaveChangesAsync();
+                    db.Materias.AddRange(materias);
+                    await db.MyBulkInsertAsync(materias);
 
                     scope.Complete();
                 }
@@ -278,6 +278,72 @@ namespace MeuCantinhoDeEstudos3.Controllers
             ModelState.AddModelError("", "O arquivo é obrigatório.");
 
             return View("Create");
+        }
+
+        public ActionResult AtualizarPorExcel()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> AtualizarPorExcelPost()
+        {
+            var userId = User.Identity.GetUserId<int>();
+
+            if (ModelState.IsValid)
+            {
+                var postedFile = Request.Files[0];
+
+                IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
+
+                DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
+                {
+                    ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
+                    {
+                        UseHeaderRow = true,
+                    }
+                });
+
+                var materias = new List<Materia>();
+
+                while (excelReader.Read())
+                {
+                    if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1)))
+                    {
+                        try
+                        {
+                            var materiaId = excelReader.GetDouble(0);
+
+                            var materia = await db.Materias
+                                          .Include(m => m.Usuario)
+                                          .FirstAsync(m => m.UsuarioId == userId && m.MateriaId == materiaId);
+                            materia.Nome = excelReader.GetString(1);
+                            materia.CorIdentificacao = excelReader.GetString(2);
+
+                            db.Entry(materia).State = EntityState.Modified;
+                            materias.Add(materia);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                            throw;
+                        }
+                    }
+                }
+
+                excelReader.Close();
+
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    await db.MyBulkUpdateAsync(materias);
+
+                    scope.Complete();
+                }
+
+                return RedirectToAction("Index");
+            }
+
+            return View();
         }
 
         [HttpGet]

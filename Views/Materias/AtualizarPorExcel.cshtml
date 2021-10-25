@@ -1,0 +1,80 @@
+﻿@model MeuCantinhoDeEstudos3.ViewModels.UploadViewModel
+
+@{
+    ViewBag.Title = "Atualizar";
+
+    <link href="~/Content/jquery.fileupload.css" rel="stylesheet" />
+}
+
+<div class="page-header">
+    <h2>Atualizar</h2>
+
+    <h4>Aqui você pode atualizar matérias por arquivo(s) excel.</h4>
+</div>
+
+<div class="alert alert-info">
+    <p>A informação que consideramos para a atualização de matéria(s) é o identificador da matéria.</p>
+</div>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
+        <br />
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.File, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <span class="btn btn-default fileinput-button">
+                    <i class="glyphicon glyphicon-plus"></i>
+                    <span>Adicionar arquivo(s)</span>
+                    @*<input type="file" id="inputFileUpload" multiple />*@
+                    @Html.TextBoxFor(model => model.File, new { @class = "form-control", @type = "file", @id = "inputFileUpload", @multiple = true })
+                </span>
+
+
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" id="btnImportar" value="Atualizar" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script src="~/Scripts/jquery.ui.widget.js"></script>
+    <script src="~/Scripts/jquery.fileupload.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#inputFileUpload').fileupload({
+                type: 'POST',
+                url: 'AtualizarPorExcelPost',
+                add: function (e, data) {
+                    $("#response").empty();
+
+                    $('#btnImportar').one('click', function (e) {
+                        e.preventDefault();
+                        data.submit();
+                    });
+                },
+                done: function (e, data) {
+                    $("#response").append("<br />");
+                    $("#response").append("<div class='alert alert-success' style='margin-bottom: 5px;'><p>Arquivo(s) importado(s) com sucesso. Você pode fechar este modal.</p></div>");
+                    console.log("Via jquery");
+                },
+                progress: function (e, data) {
+                    var progress = parseInt(data.loaded / data.total * 100, 10);
+                    $('.progress .progress-bar').css('width', progress + '%');
+                },
+            });
+        });
+    </script>
+}
