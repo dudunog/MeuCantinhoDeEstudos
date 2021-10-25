@@ -287,6 +287,8 @@
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Atividade.cs" />
     <Compile Include="Models\BateriaExercicio.cs" />
+    <Compile Include="Models\BateriaExercicioFormViewModel.cs" />
+    <Compile Include="Models\BateriasFiltroRequest.cs" />
     <Compile Include="Models\ClassesDeLog\UsuarioLog.cs" />
     <Compile Include="Models\ClassesDeLog\UsuarioLogValores.cs" />
     <Compile Include="Models\Entidade.cs" />

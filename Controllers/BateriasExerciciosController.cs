@@ -31,6 +31,23 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             var userId = User.Identity.GetUserId<int>();
 
+            if (search != null)
+            {
+                numeroPagina = 1;
+            }
+            else
+            {
+                search = filtroAtual;
+            }
+
+            var request = new BateriasFiltroRequest
+            {
+                OrdemClassificacao = ordemClassificacao,
+                Descricao = search,
+                NumeroPagina = numeroPagina
+            };
+
+            ViewBag.FiltroAtual = search;
             ViewBag.CurrentSearch = !string.IsNullOrEmpty(search) ? search : filtroAtual;
             ViewBag.ClassificacaoAtual = ordemClassificacao;
             ViewBag.ParametroClassificacaoDescricao = string.IsNullOrEmpty(ordemClassificacao) ? "descricao_desc" : "";
@@ -41,22 +58,18 @@ namespace MeuCantinhoDeEstudos3.Controllers
             ViewBag.ParametroClassificacaoAproveitamento = ordemClassificacao == "aproveitamento" ? "aproveitamento_desc" : "aproveitamento";
             ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
 
-            if (search != null)
-            {
-                numeroPagina = 1;
-            }
-            else
-            {
-                search = filtroAtual;
-            }
+            var paginatedList = await BuscarBaterias(userId, request);
 
-            ViewBag.FiltroAtual = search;
+            return View(paginatedList);
+        }
 
+        public async Task<PaginatedList<BateriaExercicio>> BuscarBaterias(int userId, BateriasFiltroRequest request)
+        {
             var bateriasExercicios = db.BateriasExercicios
-                                    .Include(b => b.Tema.Materia)
-                                    .Where(b => b.Tema.Materia.UsuarioId == userId);
+                                     .Include(b => b.Tema.Materia)
+                                     .Where(b => b.Tema.Materia.UsuarioId == userId);
 
-            switch (ordemClassificacao)
+            switch (request.OrdemClassificacao)
             {
                 case "materia":
                     bateriasExercicios = bateriasExercicios.OrderBy(b => b.Tema.Materia.Nome);
@@ -102,18 +115,14 @@ namespace MeuCantinhoDeEstudos3.Controllers
                     break;
             }
 
-            if (!string.IsNullOrEmpty(search))
+            if (!string.IsNullOrEmpty(request.Descricao))
             {
-                bateriasExercicios = bateriasExercicios.Where(a => a.Descricao.ToUpper().Contains(search.ToUpper()));
+                bateriasExercicios = bateriasExercicios.Where(a => a.Descricao.ToUpper().Contains(request.Descricao.ToUpper()));
             }
 
             int tamanhoPagina = 100;
-            var paginatedList = await PaginatedList<BateriaExercicio>.CreateAsync(bateriasExercicios, numeroPagina ?? 1, tamanhoPagina);
 
-            //IEnumerable<BateriaExercicioViewModel> viewModels =
-            //    mapper.Map<IEnumerable<BateriaExercicioViewModel>>(await bateriasExercicios.ToListAsync());
-
-            return View(paginatedList);
+            return await PaginatedList<BateriaExercicio>.CreateAsync(bateriasExercicios, request.NumeroPagina ?? 1, tamanhoPagina);
         }
 
         // GET: BateriaExercicios/Details/5
