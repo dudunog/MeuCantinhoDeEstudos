@@ -31,12 +31,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.CurrentSearch = !string.IsNullOrEmpty(search) ? search : filtroAtual;
-            ViewBag.ClassificacaoAtual = ordemClassificacao;
-            ViewBag.ParametroClassificacaoTema = string.IsNullOrEmpty(ordemClassificacao) ? "tema_desc" : "";
-            ViewBag.ParametroClassificacaoMateria = ordemClassificacao == "materia" ? "materia_desc" : "materia";
-            ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
-
             if (search != null)
             {
                 numeroPagina = 1;
@@ -46,14 +40,32 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 search = filtroAtual;
             }
 
-            ViewBag.FiltroAtual = search;
+            var request = new FiltroRequest
+            {
+                OrdemClassificacao = ordemClassificacao,
+                Search = search,
+                NumeroPagina = numeroPagina
+            };
 
+            ViewBag.FiltroAtual = search;
+            ViewBag.CurrentSearch = !string.IsNullOrEmpty(search) ? search : filtroAtual;
+            ViewBag.ClassificacaoAtual = ordemClassificacao;
+            ViewBag.ParametroClassificacaoTema = string.IsNullOrEmpty(ordemClassificacao) ? "tema_desc" : "";
+            ViewBag.ParametroClassificacaoMateria = ordemClassificacao == "materia" ? "materia_desc" : "materia";
+            ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
+
+            var paginatedList = await BuscarTemas(userId, request);
+
+            return View(paginatedList);
+        }
+
+        private async Task<PaginatedList<Tema>> BuscarTemas(int userId, FiltroRequest request)
+        {
             var temas = db.Temas
                         .Include(t => t.Materia.Usuario)
-                        .Include(t => t.Atividades)
                         .Where(t => t.Materia.UsuarioId == userId);
 
-            switch (ordemClassificacao)
+            switch (request.OrdemClassificacao)
             {
                 case "materia":
                     temas = temas.OrderBy(t => t.Materia.Nome);
@@ -75,18 +87,14 @@ namespace MeuCantinhoDeEstudos3.Controllers
                     break;
             }
 
-            if (!string.IsNullOrEmpty(search))
+            if (!string.IsNullOrEmpty(request.Search))
             {
-                temas = temas.Where(t => t.Nome.ToUpper().Contains(search.ToUpper()));
+                temas = temas.Where(t => t.Nome.ToUpper().Contains(request.Search.ToUpper()));
             }
 
             int tamanhoPagina = 100;
-            var paginatedList = await PaginatedList<Tema>.CreateAsync(temas, numeroPagina ?? 1, tamanhoPagina);
 
-            //IEnumerable<TemaViewModel> viewModels =
-            //    mapper.Map<IEnumerable<TemaViewModel>>(paginatedList.Items);
-
-            return View(paginatedList);
+            return await PaginatedList<Tema>.CreateAsync(temas, request.NumeroPagina ?? 1, tamanhoPagina);
         }
 
         // GET: Temas/Details/5

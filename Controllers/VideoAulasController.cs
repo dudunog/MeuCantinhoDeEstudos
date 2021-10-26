@@ -31,11 +31,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.CurrentSearch = !string.IsNullOrEmpty(search) ? search : filtroAtual;
-            ViewBag.ClassificacaoAtual = ordemClassificacao;
-            ViewBag.ParametroClassificacaoDescricao = string.IsNullOrEmpty(ordemClassificacao) ? "descricao_desc" : "";
-            ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
-
             if (search != null)
             {
                 numeroPagina = 1;
@@ -45,13 +40,31 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 search = filtroAtual;
             }
 
-            ViewBag.FiltroAtual = search;
+            var request = new FiltroRequest
+            {
+                OrdemClassificacao = ordemClassificacao,
+                Search = search,
+                NumeroPagina = numeroPagina
+            };
 
+            ViewBag.FiltroAtual = search;
+            ViewBag.CurrentSearch = !string.IsNullOrEmpty(search) ? search : filtroAtual;
+            ViewBag.ClassificacaoAtual = ordemClassificacao;
+            ViewBag.ParametroClassificacaoDescricao = string.IsNullOrEmpty(ordemClassificacao) ? "descricao_desc" : "";
+            ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
+
+            var paginatedList = await BuscarVideoAulas(userId, request);
+
+            return View(paginatedList);
+        }
+
+        private async Task<PaginatedList<VideoAula>> BuscarVideoAulas(int userId, FiltroRequest request)
+        {
             var videoAulas = db.VideoAulas
                              .Include(v => v.Tema.Materia)
                              .Where(v => v.Tema.Materia.UsuarioId == userId);
 
-            switch (ordemClassificacao)
+            switch (request.OrdemClassificacao)
             {
                 case "Date":
                     videoAulas = videoAulas.OrderBy(a => a.DataCriacao);
@@ -67,18 +80,13 @@ namespace MeuCantinhoDeEstudos3.Controllers
                     break;
             }
 
-            if (!string.IsNullOrEmpty(search))
+            if (!string.IsNullOrEmpty(request.Search))
             {
-                videoAulas = videoAulas.Where(v => v.Descricao.ToUpper().Contains(search.ToUpper()));
+                videoAulas = videoAulas.Where(v => v.Descricao.ToUpper().Contains(request.Search.ToUpper()));
             }
 
             int tamanhoPagina = 100;
-            var paginatedList = await PaginatedList<VideoAula>.CreateAsync(videoAulas, numeroPagina ?? 1, tamanhoPagina);
-
-            //IEnumerable<VideoAulaViewModel> viewModels =
-            //    mapper.Map<IEnumerable<VideoAulaViewModel>>(await videoAulas.ToListAsync());
-
-            return View(paginatedList);
+            return await PaginatedList<VideoAula>.CreateAsync(videoAulas, request.NumeroPagina ?? 1, tamanhoPagina);
         }
 
         // GET: VideoAulas/Details/5

@@ -40,10 +40,10 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 search = filtroAtual;
             }
 
-            var request = new BateriasFiltroRequest
+            var request = new FiltroRequest
             {
                 OrdemClassificacao = ordemClassificacao,
-                Descricao = search,
+                Search = search,
                 NumeroPagina = numeroPagina
             };
 
@@ -63,7 +63,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
             return View(paginatedList);
         }
 
-        public async Task<PaginatedList<BateriaExercicio>> BuscarBaterias(int userId, BateriasFiltroRequest request)
+        public async Task<PaginatedList<BateriaExercicio>> BuscarBaterias(int userId, FiltroRequest request)
         {
             var bateriasExercicios = db.BateriasExercicios
                                      .Include(b => b.Tema.Materia)
@@ -115,9 +115,9 @@ namespace MeuCantinhoDeEstudos3.Controllers
                     break;
             }
 
-            if (!string.IsNullOrEmpty(request.Descricao))
+            if (!string.IsNullOrEmpty(request.Search))
             {
-                bateriasExercicios = bateriasExercicios.Where(a => a.Descricao.ToUpper().Contains(request.Descricao.ToUpper()));
+                bateriasExercicios = bateriasExercicios.Where(a => a.Descricao.ToUpper().Contains(request.Search.ToUpper()));
             }
 
             int tamanhoPagina = 100;

@@ -10,6 +10,8 @@
 
     var anteriorDesativado = !Model.TemPaginaAnterior ? "disabled" : "";
     var proximaDesativado = !Model.TemProximaPagina ? "disabled" : "";
+
+    var temItems = Model.Count > 0;
 }
 
 <div class="page-header">
@@ -27,19 +29,22 @@
                 <input type="submit" value="Pesquisar" class="btn btn-primary" /> |
                 @Html.ActionLink("Remover filtro", "Index")
 
-                @Html.ActionLink("Anterior", "Index", new
+                @if (temItems)
                 {
-                    @ordemClassificacao = ViewBag.ClassificacaoAtual,
-                    @numeroPagina = Model.IndicePagina - 1,
-                    @filtroAtual = ViewBag.FiltroAtual
-                }, new { @class = $"btn btn-default {anteriorDesativado}", @style = "margin-left:30px;" })
+                    @Html.ActionLink("Anterior", "Index", new
+                    {
+                        @ordemClassificacao = ViewBag.ClassificacaoAtual,
+                        @numeroPagina = Model.IndicePagina - 1,
+                        @filtroAtual = ViewBag.FiltroAtual
+                    }, new { @class = $"btn btn-default {anteriorDesativado}", @style = "margin-left:30px;" })
 
-                @Html.ActionLink("Próxima", "Index", new
-                {
-                    @ordemClassificacao = ViewBag.ClassificacaoAtual,
-                    @numeroPagina = Model.IndicePagina + 1,
-                    @filtroAtual = ViewBag.FiltroAtual
-                }, new { @class = $"btn btn-default {proximaDesativado}" })
+                    @Html.ActionLink("Próxima", "Index", new
+                    {
+                        @ordemClassificacao = ViewBag.ClassificacaoAtual,
+                        @numeroPagina = Model.IndicePagina + 1,
+                        @filtroAtual = ViewBag.FiltroAtual
+                    }, new { @class = $"btn btn-default {proximaDesativado}" })
+                }
             </div>
         </form>
 
@@ -65,67 +70,71 @@
 
 <br />
 
-<table class="table">
-    <tr>
-        <th>
-            @Html.ActionLink("Nome", "Index", new { @ordemClassificacao = ViewBag.ParametroClassificacaoNome, @filtroAtual = ViewBag.FiltroAtual })
-        </th>
-        <th>
-            Cor de identificação
-        </th>
-        <th>
-            @Html.ActionLink("Data de criação", "Index", new { @ordemClassificacao = ViewBag.ParametroClassificacaoData, @filtroAtual = ViewBag.FiltroAtual })
-        </th>
-        <th></th>
-    </tr>
-
-    @foreach (var item in Model)
-    {
+@if (temItems)
+{
+    <table class="table">
         <tr>
-            <td>
-                <span class="badge" style="background-color:#@item.CorIdentificacao;width:1px;height:14px;"> </span>
-                @Html.DisplayFor(modelItem => item.Nome)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CorIdentificacao)
-            </td>
-            @if (@Convert.ToDateTime(DateTime.Now).Subtract(item.DataCriacao).TotalDays > 2)
-            {
-                <td>
-                    @item.DataCriacao.ToShortDateString() às @item.DataCriacao.ToShortTimeString()
-                </td>
-            }
-            else
-            {
-                <td>
-                    @item.DataCriacao.Humanize(false)
-                </td>
-            }
-            <td>
-                @Html.ActionLink("Editar", "Edit", new { id = item.MateriaId }) |
-                @Html.ActionLink("Detalhes", "Details", new { id = item.MateriaId }) |
-                @Html.ActionLink("Excluir", "Delete", new { id = item.MateriaId })
-            </td>
+            <th>
+                @Html.ActionLink("Nome", "Index", new { @ordemClassificacao = ViewBag.ParametroClassificacaoNome, @filtroAtual = ViewBag.FiltroAtual })
+            </th>
+            <th>
+                Cor de identificação
+            </th>
+            <th>
+                @Html.ActionLink("Data de criação", "Index", new { @ordemClassificacao = ViewBag.ParametroClassificacaoData, @filtroAtual = ViewBag.FiltroAtual })
+            </th>
+            <th></th>
         </tr>
-    }
-</table>
+
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    <span class="badge" style="background-color:#@item.CorIdentificacao;width:1px;height:14px;"> </span>
+                    @Html.DisplayFor(modelItem => item.Nome)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CorIdentificacao)
+                </td>
+                @if (@Convert.ToDateTime(DateTime.Now).Subtract(item.DataCriacao).TotalDays > 2)
+                {
+                    <td>
+                        @item.DataCriacao.ToShortDateString() às @item.DataCriacao.ToShortTimeString()
+                    </td>
+                }
+                else
+                {
+                    <td>
+                        @item.DataCriacao.Humanize(false)
+                    </td>
+                }
+                <td>
+                    @Html.ActionLink("Editar", "Edit", new { id = item.MateriaId }) |
+                    @Html.ActionLink("Detalhes", "Details", new { id = item.MateriaId }) |
+                    @Html.ActionLink("Excluir", "Delete", new { id = item.MateriaId })
+                </td>
+            </tr>
+        }
+    </table>
+}
 
 <div style="display:flex;float:right;gap:4px;">
-    @Html.ActionLink("Anterior", "Index", new
+    @if (temItems)
     {
-        @ordemClassificacao = ViewBag.ClassificacaoAtual,
-        @numeroPagina = Model.IndicePagina - 1,
-        @filtroAtual = ViewBag.FiltroAtual
-    },
-        new { @class = $"btn btn-default {anteriorDesativado}", @style = "margin-left:30px;" })
+        @Html.ActionLink("Anterior", "Index", new
+        {
+            @ordemClassificacao = ViewBag.ClassificacaoAtual,
+            @numeroPagina = Model.IndicePagina - 1,
+            @filtroAtual = ViewBag.FiltroAtual
+        }, new { @class = $"btn btn-default {anteriorDesativado}", @style = "margin-left:30px;" })
 
-    @Html.ActionLink("Próxima", "Index", new
-    {
-        @ordemClassificacao = ViewBag.ClassificacaoAtual,
-        @numeroPagina = Model.IndicePagina + 1,
-        @filtroAtual = ViewBag.FiltroAtual
-    },
-        new { @class = $"btn btn-default {proximaDesativado}" })
+        @Html.ActionLink("Próxima", "Index", new
+        {
+            @ordemClassificacao = ViewBag.ClassificacaoAtual,
+            @numeroPagina = Model.IndicePagina + 1,
+            @filtroAtual = ViewBag.FiltroAtual
+        }, new { @class = $"btn btn-default {proximaDesativado}" })
+    }
 </div>
 
 <br />

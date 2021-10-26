@@ -32,11 +32,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
         {
             var userId = User.Identity.GetUserId<int>();
 
-            ViewBag.CurrentSearch = !string.IsNullOrEmpty(search) ? search : filtroAtual;
-            ViewBag.ClassificacaoAtual = ordemClassificacao;
-            ViewBag.ParametroClassificacaoNome = string.IsNullOrEmpty(ordemClassificacao) ? "name_desc" : "";
-            ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
-
             if (search != null)
             {
                 numeroPagina = 1;
@@ -46,13 +41,31 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 search = filtroAtual;
             }
 
-            ViewBag.FiltroAtual = search;
+            var request = new FiltroRequest
+            {
+                OrdemClassificacao = ordemClassificacao,
+                Search = search,
+                NumeroPagina = numeroPagina
+            };
 
+            ViewBag.FiltroAtual = search;
+            ViewBag.CurrentSearch = !string.IsNullOrEmpty(search) ? search : filtroAtual;
+            ViewBag.ClassificacaoAtual = ordemClassificacao;
+            ViewBag.ParametroClassificacaoNome = string.IsNullOrEmpty(ordemClassificacao) ? "name_desc" : "";
+            ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
+
+            var paginatedList = await BuscarMaterias(userId, request);
+
+            return View(paginatedList);
+        }
+
+        private async Task<PaginatedList<Materia>> BuscarMaterias(int userId, FiltroRequest request)
+        {
             var materias = db.Materias
                            .Include(m => m.Usuario)
                            .Where(m => m.UsuarioId == userId);
 
-            switch (ordemClassificacao)
+            switch (request.OrdemClassificacao)
             {
                 case "Date":
                     materias = materias.OrderBy(m => m.DataCriacao);
@@ -68,18 +81,14 @@ namespace MeuCantinhoDeEstudos3.Controllers
                     break;
             }
 
-            if (!string.IsNullOrEmpty(search))
+            if (!string.IsNullOrEmpty(request.Search))
             {
-                materias = materias.Where(m => m.Nome.ToUpper().Contains(search.ToUpper()));
+                materias = materias.Where(m => m.Nome.ToUpper().Contains(request.Search.ToUpper()));
             }
 
             int tamanhoPagina = 100;
-            var paginatedList = await PaginatedList<Materia>.CreateAsync(materias, numeroPagina ?? 1, tamanhoPagina);
 
-            IEnumerable<MateriaViewModel> viewModels =
-                mapper.Map<IEnumerable<MateriaViewModel>>(paginatedList.Items);
-
-            return View(paginatedList);
+            return await PaginatedList<Materia>.CreateAsync(materias, request.NumeroPagina ?? 1, tamanhoPagina);
         }
 
         // GET: Materias/Details/5
