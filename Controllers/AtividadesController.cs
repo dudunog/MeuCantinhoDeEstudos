@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ExcelDataReader;
 using Humanizer;
+using MeuCantinhoDeEstudos3.Extensions;
 using MeuCantinhoDeEstudos3.Mappers;
 using MeuCantinhoDeEstudos3.Models;
 using MeuCantinhoDeEstudos3.ViewModels;
@@ -248,17 +249,17 @@ namespace MeuCantinhoDeEstudos3.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> ImportarExcel()
+        public async Task<ActionResult> InserirPorExcel()
         {
             var userId = User.Identity.GetUserId<int>();
             
             if (Request.Files.Count > 0)
             {
                 var postedFile = Request.Files[0];
-                var atividades = new List<Atividade>();
+
+                List<Atividade> atividades = new List<Atividade>();
 
                 IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
-
                 DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
                 {
                     ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
@@ -286,7 +287,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     db.Atividades.AddRange(atividades);
-                    await db.BulkSaveChangesAsync();
+                    await db.MyBulkInsertAsync(atividades);
 
                     scope.Complete();
                 }
@@ -304,9 +305,72 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 Temas = new SelectList(Enumerable.Empty<SelectListItem>())
             };
 
-            ModelState.AddModelError("", "O arquivo é obrigatório.");
-
             return View("Create", viewModel);
+        }
+
+        public ActionResult AtualizarPorExcel()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> AtualizarPorExcelPost()
+        {
+            var userId = User.Identity.GetUserId<int>();
+
+            if (ModelState.IsValid)
+            {
+                var postedFile = Request.Files[0];
+
+                IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
+
+                DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
+                {
+                    ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
+                    {
+                        UseHeaderRow = true,
+                    }
+                });
+
+                List<Atividade> atividades = new List<Atividade>();
+
+                while (excelReader.Read())
+                {
+                    if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1)))
+                    {
+                        try
+                        {
+                            var atividadeId = excelReader.GetDouble(0);
+
+                            var atividade = await db.Atividades
+                                            .Include(a => a.Tema.Materia.Usuario)
+                                            .FirstAsync(a => a.Tema.Materia.UsuarioId == userId && a.AtividadeId == atividadeId);
+                            atividade.Descricao = excelReader.GetString(1);
+
+                            db.Entry(atividade).State = EntityState.Modified;
+                            atividades.Add(atividade);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                            throw;
+                        }
+                    }
+                }
+
+                excelReader.Close();
+
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    await db.MyBulkUpdateAsync(atividades);
+
+                    scope.Complete();
+                }
+
+                return RedirectToAction("Index");
+            }
+
+            return View();
         }
 
         [HttpGet]

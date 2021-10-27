@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ExcelDataReader;
+using MeuCantinhoDeEstudos3.Extensions;
 using MeuCantinhoDeEstudos3.Mappers;
 using MeuCantinhoDeEstudos3.Models;
 using MeuCantinhoDeEstudos3.ViewModels;
@@ -303,7 +304,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> ImportarExcel()
+        public async Task<ActionResult> InserirPorExcel()
         {
             var userId = User.Identity.GetUserId<int>();
             
@@ -383,6 +384,74 @@ namespace MeuCantinhoDeEstudos3.Controllers
             ModelState.AddModelError("", "O arquivo é obrigatório.");
 
             return View("Create", viewModel);
+        }
+
+        public ActionResult AtualizarPorExcel()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> AtualizarPorExcelPost()
+        {
+            var userId = User.Identity.GetUserId<int>();
+
+            if (ModelState.IsValid)
+            {
+                var postedFile = Request.Files[0];
+
+                IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
+
+                DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
+                {
+                    ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
+                    {
+                        UseHeaderRow = true,
+                    }
+                });
+
+                List<BateriaExercicio> bateriasExercicios = new List<BateriaExercicio>();
+
+                while (excelReader.Read())
+                {
+                    if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1)))
+                    {
+                        try
+                        {
+                            var videoAulaId = excelReader.GetDouble(0);
+
+                            var bateriaExercicio = await db.BateriasExercicios
+                                                   .Include(a => a.Tema.Materia.Usuario)
+                                                   .FirstAsync(a => a.Tema.Materia.UsuarioId == userId && a.AtividadeId == videoAulaId);
+                            bateriaExercicio.Descricao = excelReader.GetString(1);
+                            bateriaExercicio.QuantidadeExercicios = int.Parse(excelReader.GetValue(2).ToString());
+                            bateriaExercicio.QuantidadeAcertos = int.Parse(excelReader.GetValue(3).ToString());
+                            bateriaExercicio.CalcularAproveitamento();
+
+                            db.Entry(bateriaExercicio).State = EntityState.Modified;
+                            bateriasExercicios.Add(bateriaExercicio);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                            throw;
+                        }
+                    }
+                }
+
+                excelReader.Close();
+
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    await db.MyBulkUpdateAsync(bateriasExercicios);
+
+                    scope.Complete();
+                }
+
+                return RedirectToAction("Index");
+            }
+
+            return View();
         }
 
         [HttpGet]

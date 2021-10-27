@@ -507,6 +507,10 @@
     <Content Include="Scripts\moment-with-locales.min.js.map" />
     <Content Include="Views\Materias\_FileUpload.cshtml" />
     <Content Include="Views\Materias\AtualizarPorExcel.cshtml" />
+    <Content Include="Views\Temas\AtualizarPorExcel.cshtml" />
+    <Content Include="Views\Atividades\AtualizarPorExcel.cshtml" />
+    <Content Include="Views\BateriasExercicios\AtualizarPorExcel.cshtml" />
+    <Content Include="Views\VideoAulas\AtualizarPorExcel.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />

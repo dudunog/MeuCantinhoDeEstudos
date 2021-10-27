@@ -16,11 +16,12 @@ using RazorPDF;
 using MeuCantinhoDeEstudos3.ViewModels;
 using AutoMapper;
 using MeuCantinhoDeEstudos3.Mappers;
+using MeuCantinhoDeEstudos3.Extensions;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
     [Authorize]
-    public class TemasController : Controller
+    public class TemasController : System.Web.Mvc.Controller
     {
         private MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
 
@@ -275,17 +276,17 @@ namespace MeuCantinhoDeEstudos3.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> ImportarExcel()
+        public async Task<ActionResult> InserirPorExcel()
         {
             var userId = User.Identity.GetUserId<int>();
             
             if (Request.Files.Count > 0)
             {
                 var postedFile = Request.Files[0];
+
                 List<Tema> temas = new List<Tema>();
 
                 IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
-
                 DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
                 {
                     ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
@@ -320,16 +321,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    try
-                    {
-                        db.Temas.AddRange(temas);
-                        await db.BulkSaveChangesAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                        throw new Exception();
-                    }
+                    db.Temas.AddRange(temas);
+                    await db.MyBulkInsertAsync(temas);
 
                     scope.Complete();
                 }
@@ -346,9 +339,72 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 Materias = new SelectList(await materias.ToListAsync(), "MateriaId", "Nome")
             };
 
-            ModelState.AddModelError("", "O arquivo é obrigatório.");
-
             return View("Create", viewModel);
+        }
+
+        public ActionResult AtualizarPorExcel()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> AtualizarPorExcelPost()
+        {
+            var userId = User.Identity.GetUserId<int>();
+
+            if (ModelState.IsValid)
+            {
+                var postedFile = Request.Files[0];
+
+                IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
+
+                DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
+                {
+                    ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
+                    {
+                        UseHeaderRow = true,
+                    }
+                });
+
+                List<Tema> temas = new List<Tema>();
+
+                while (excelReader.Read())
+                {
+                    if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1)))
+                    {
+                        try
+                        {
+                            var temaId = excelReader.GetDouble(0);
+
+                            var tema = await db.Temas
+                                             .Include(t => t.Materia.Usuario)
+                                             .FirstAsync(t => t.Materia.UsuarioId == userId && t.TemaId == temaId);
+                            tema.Nome = excelReader.GetString(1);
+
+                            db.Entry(tema).State = EntityState.Modified;
+                            temas.Add(tema);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                            throw;
+                        }
+                    }
+                }
+
+                excelReader.Close();
+
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    await db.MyBulkUpdateAsync(temas);
+
+                    scope.Complete();
+                }
+
+                return RedirectToAction("Index");
+            }
+
+            return View();
         }
 
         [HttpGet]

@@ -244,10 +244,9 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 var postedFile = Request.Files[0];
 
-                var materias = new List<Materia>();
+                List<Materia> materias = new List<Materia>();
 
                 IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
-
                 DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
                 {
                     ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
@@ -283,8 +282,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
                 return RedirectToAction("Index");
             }
-
-            ModelState.AddModelError("", "O arquivo é obrigatório.");
 
             return View("Create");
         }
