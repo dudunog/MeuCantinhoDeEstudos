@@ -16,6 +16,8 @@ using RazorPDF;
 using AutoMapper;
 using MeuCantinhoDeEstudos3.Mappers;
 using MeuCantinhoDeEstudos3.Extensions;
+using System.Drawing;
+using OfficeOpenXml.Style;
 
 namespace MeuCantinhoDeEstudos3.Controllers
 {
@@ -429,6 +431,11 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 //Títulos
                 var i = 1;
                 var titulos = new [] { "Matéria", "Cor de Identificação" };
+
+                sheet.Cells["A1:B1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                sheet.Cells["A1:B1"].Style.Fill.BackgroundColor.SetColor(ColorTranslator.FromHtml("#5794d8"));
+                sheet.Cells["A1:B1"].Style.Font.Color.SetColor(ColorTranslator.FromHtml("#FFF"));
+
                 foreach (var titulo in titulos)
                 {
                     sheet.Cells[1, i++].Value = titulo;

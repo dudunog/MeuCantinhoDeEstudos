@@ -7,11 +7,13 @@ using MeuCantinhoDeEstudos3.Models;
 using MeuCantinhoDeEstudos3.ViewModels;
 using Microsoft.AspNet.Identity;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using RazorPDF;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
+using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -419,6 +421,11 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 //Títulos
                 var i = 1;
                 var titulos = new [] { "Descrição", "Matéria", "Tema" };
+
+                sheet.Cells["A1:C1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                sheet.Cells["A1:C1"].Style.Fill.BackgroundColor.SetColor(ColorTranslator.FromHtml("#5794d8"));
+                sheet.Cells["A1:C1"].Style.Font.Color.SetColor(ColorTranslator.FromHtml("#FFF"));
+
                 foreach (var titulo in titulos)
                 {
                     sheet.Cells[1, i++].Value = titulo;
