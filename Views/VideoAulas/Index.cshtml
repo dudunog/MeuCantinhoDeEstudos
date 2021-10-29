@@ -60,8 +60,8 @@
             <div>
                 @Html.ActionLink("Adicionar vídeoaula", "Create") |
                 @Html.ActionLink("Atualizar por excel", "AtualizarPorExcel") |
-                @Html.ActionLink("Gerar Excel", "GerarRelatorioExcel", new { @search = ViewBag.CurrentSearch }) |
-                @Html.ActionLink("Gerar PDF", "GerarRelatorioPDF", new { @search = ViewBag.CurrentSearch })
+                @Html.ActionLink("Gerar Excel", "GerarRelatorioExcel", new { @ordemClassificacao = ViewBag.ClassificacaoAtual, @search = ViewBag.CurrentSearch }) |
+                @Html.ActionLink("Gerar PDF", "GerarRelatorioPDF", new { @ordemClassificacao = ViewBag.ClassificacaoAtual, @search = ViewBag.CurrentSearch })
             </div>
         </div>
     </div>

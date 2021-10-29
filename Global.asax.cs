@@ -5,9 +5,6 @@ using StackExchange.Profiling.EntityFramework6;
 using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Routing;
-using AutoMapper;
-using MeuCantinhoDeEstudos3.Models;
-using MeuCantinhoDeEstudos3.ViewModels;
 using MeuCantinhoDeEstudos3.Mappers;
 
 namespace MeuCantinhoDeEstudos3
@@ -30,7 +27,6 @@ namespace MeuCantinhoDeEstudos3
             });
 
             var auditConfiguration = AuditConfiguration.Default;
-
             auditConfiguration.IncludeRelationships = true;
             auditConfiguration.LoadRelationships = true;
             auditConfiguration.DefaultAuditable = true;

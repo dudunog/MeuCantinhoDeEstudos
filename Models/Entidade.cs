@@ -9,10 +9,13 @@ namespace MeuCantinhoDeEstudos3.Models
     {
         [DisplayName("Criado em")]
         public DateTime DataCriacao { get; set; }
+
         [DisplayName("Criado por")]
         public string UsuarioCriacao { get; set; }
+        
         [DisplayName("Modificado em")]
         public DateTime? UltimaModificacao { get; set; }
+        
         public string UsuarioModificacao { get; set; }
 
         static Entidade()

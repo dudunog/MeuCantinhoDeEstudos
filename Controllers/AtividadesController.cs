@@ -373,11 +373,41 @@ namespace MeuCantinhoDeEstudos3.Controllers
             return View();
         }
 
-        [HttpGet]
-        public FileResult GerarRelatorioExcel(string search)
+        private IQueryable<Atividade> BuscarAtividadesExportacao(FiltroRequest request)
         {
             var userId = User.Identity.GetUserId<int>();
 
+            var atividades = db.Atividades
+                            .Include(a => a.Tema.Materia)
+                            .Where(a => a.Tema.Materia.UsuarioId == userId);
+
+            if (!string.IsNullOrEmpty(request.Search))
+            {
+                atividades = atividades.Where(a => a.Descricao.ToUpper().Contains(request.Search.ToUpper()));
+            }
+
+            switch (request.OrdemClassificacao)
+            {
+                case "Date":
+                    atividades = atividades.OrderBy(a => a.DataCriacao);
+                    break;
+                case "date_desc":
+                    atividades = atividades.OrderByDescending(a => a.DataCriacao);
+                    break;
+                case "descricao_desc":
+                    atividades = atividades.OrderByDescending(a => a.Descricao);
+                    break;
+                default:
+                    atividades = atividades.OrderBy(a => a.Descricao);
+                    break;
+            }
+
+            return atividades;
+        }
+
+        [HttpGet]
+        public FileResult GerarRelatorioExcel(string ordemClassificacao, string search)
+        {
             using (var excelPackage = new ExcelPackage())
             {
                 excelPackage.Workbook.Properties.Author = "Meu Cantinho de Estudos";
@@ -394,14 +424,13 @@ namespace MeuCantinhoDeEstudos3.Controllers
                     sheet.Cells[1, i++].Value = titulo;
                 }
 
-                var atividades = db.Atividades
-                                .Include(a => a.Tema.Materia)
-                                .Where(a => a.Tema.Materia.UsuarioId == userId);
-
-                if (!string.IsNullOrEmpty(search))
+                var request = new FiltroRequest
                 {
-                    atividades = atividades.Where(a => a.Descricao.ToUpper().Contains(search.ToUpper()));
-                }
+                    OrdemClassificacao = ordemClassificacao,
+                    Search = search
+                };
+
+                var atividades = BuscarAtividadesExportacao(request);
 
                 //Valores
                 var r = 2;
@@ -420,21 +449,18 @@ namespace MeuCantinhoDeEstudos3.Controllers
             }
         }
 
-        public ActionResult GerarRelatorioPDF(string search)
+        public async Task<ActionResult> GerarRelatorioPDF(string ordemClassificacao, string search)
         {
             //RazorPDF2
-            var userId = User.Identity.GetUserId<int>();
-
-            var atividades = db.Atividades
-                             .Include(a => a.Tema.Materia)
-                             .Where(a => a.Tema.Materia.UsuarioId == userId);
-
-            if (!string.IsNullOrEmpty(search))
+            var request = new FiltroRequest
             {
-                atividades = atividades.Where(a => a.Descricao.ToUpper().Contains(search.ToUpper()));
-            }
+                OrdemClassificacao = ordemClassificacao,
+                Search = search
+            };
 
-            return new PdfActionResult("AtividadesReport", atividades.ToList())
+            var atividades = BuscarAtividadesExportacao(request);
+
+            return new PdfActionResult("AtividadesReport", await atividades.ToListAsync())
             {
                 FileDownloadName = "Relatório-Atividades.pdf"
             };

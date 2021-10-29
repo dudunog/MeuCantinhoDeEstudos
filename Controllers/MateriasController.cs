@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using OfficeOpenXml;
 using System.Web;
 using RazorPDF;
-using MeuCantinhoDeEstudos3.ViewModels;
 using AutoMapper;
 using MeuCantinhoDeEstudos3.Mappers;
 using MeuCantinhoDeEstudos3.Extensions;
@@ -54,12 +53,44 @@ namespace MeuCantinhoDeEstudos3.Controllers
             ViewBag.ParametroClassificacaoNome = string.IsNullOrEmpty(ordemClassificacao) ? "name_desc" : "";
             ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
 
-            var paginatedList = await BuscarMaterias(userId, request);
+            var paginatedList = await BuscarMateriasPaginacao(userId, request);
 
             return View(paginatedList);
         }
 
-        private async Task<PaginatedList<Materia>> BuscarMaterias(int userId, FiltroRequest request)
+        private async Task<PaginatedList<Materia>> BuscarMateriasPaginacao(int userId, FiltroRequest request)
+        {
+            var materias = db.Materias
+                           .Include(m => m.Usuario)
+                           .Where(m => m.UsuarioId == userId);
+
+            switch (request.OrdemClassificacao)
+            {
+                case "Date":
+                    materias = materias.OrderBy(m => m.DataCriacao);
+                    break;
+                case "date_desc":
+                    materias = materias.OrderByDescending(m => m.DataCriacao);
+                    break;
+                case "name_desc":
+                    materias = materias.OrderByDescending(m => m.Nome);
+                    break;
+                default:
+                    materias = materias.OrderBy(s => s.Nome);
+                    break;
+            }
+
+            if (!string.IsNullOrEmpty(request.Search))
+            {
+                materias = materias.Where(m => m.Nome.ToUpper().Contains(request.Search.ToUpper()));
+            }
+
+            int tamanhoPagina = 100;
+
+            return await PaginatedList<Materia>.CreateAsync(materias, request.NumeroPagina ?? 1, tamanhoPagina);
+        }
+
+        private async Task<PaginatedList<Materia>> BuscarTodasMaterias(int userId, FiltroRequest request)
         {
             var materias = db.Materias
                            .Include(m => m.Usuario)
@@ -352,11 +383,41 @@ namespace MeuCantinhoDeEstudos3.Controllers
             return View();
         }
 
-        [HttpGet]
-        public FileResult GerarRelatorioExcel(string search)
+        private IQueryable<Materia> BuscarMateriasExportacao(FiltroRequest request)
         {
             var userId = User.Identity.GetUserId<int>();
 
+            var materias = db.Materias
+                               .Include(m => m.Usuario)
+                               .Where(m => m.UsuarioId == userId);
+
+            switch (request.OrdemClassificacao)
+            {
+                case "Date":
+                    materias = materias.OrderBy(m => m.DataCriacao);
+                    break;
+                case "date_desc":
+                    materias = materias.OrderByDescending(m => m.DataCriacao);
+                    break;
+                case "name_desc":
+                    materias = materias.OrderByDescending(m => m.Nome);
+                    break;
+                default:
+                    materias = materias.OrderBy(s => s.Nome);
+                    break;
+            }
+
+            if (!string.IsNullOrEmpty(request.Search))
+            {
+                materias = materias.Where(m => m.Nome.ToUpper().Contains(request.Search.ToUpper()));
+            }
+
+            return materias;
+        }
+
+        [HttpGet]
+        public async Task<FileResult> GerarRelatorioExcel(string ordemClassificacao, string search)
+        {
             using (var excelPackage = new ExcelPackage())
             {
                 excelPackage.Workbook.Properties.Author = "Meu Cantinho de Estudos";
@@ -367,20 +428,19 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
                 //Títulos
                 var i = 1;
-                var titulos = new String[] { "Matéria", "Cor de Identificação" };
+                var titulos = new [] { "Matéria", "Cor de Identificação" };
                 foreach (var titulo in titulos)
                 {
                     sheet.Cells[1, i++].Value = titulo;
                 }
 
-                var materias = db.Materias
-                               .Include(m => m.Usuario)
-                               .Where(m => m.UsuarioId == userId);
-
-                if (!string.IsNullOrEmpty(search))
+                var request = new FiltroRequest
                 {
-                    materias = materias.Where(m => m.Nome.ToUpper().Contains(search.ToUpper()));
-                }
+                    OrdemClassificacao = ordemClassificacao,
+                    Search = search
+                };
+
+                var materias = BuscarMateriasExportacao(request);
 
                 //Valores
                 var r = 2;
@@ -398,22 +458,18 @@ namespace MeuCantinhoDeEstudos3.Controllers
             }
         }
 
-        [HttpGet]
-        public ActionResult GerarRelatorioPDF(string search)
+        public async Task<ActionResult> GerarRelatorioPDF(string ordemClassificacao, string search)
         {
             //RazorPDF2
-            var userId = User.Identity.GetUserId<int>();
-
-            var materias = db.Materias
-                           .Include(m => m.Usuario)
-                           .Where(m => m.UsuarioId == userId);
-
-            if (!string.IsNullOrEmpty(search))
+            var request = new FiltroRequest
             {
-                materias = materias.Where(m => m.Nome.ToUpper().Contains(search.ToUpper()));
-            }
+                OrdemClassificacao = ordemClassificacao,
+                Search = search
+            };
 
-            return new PdfActionResult("MateriasReport", materias.ToList())
+            var materias = BuscarMateriasExportacao(request);
+
+            return new PdfActionResult("MateriasReport", await materias.ToListAsync())
             {
                 FileDownloadName = "Relatório-Matérias.pdf"
             };

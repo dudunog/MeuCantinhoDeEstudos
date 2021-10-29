@@ -293,13 +293,11 @@
     <Compile Include="Models\ClassesDeLog\UsuarioLogValores.cs" />
     <Compile Include="Models\Entidade.cs" />
     <Compile Include="Models\Grupo.cs" />
-    <Compile Include="Models\Helpers\MateriaHelper.cs" />
     <Compile Include="Models\Interfaces\IEntidade.cs" />
     <Compile Include="Models\Interfaces\IEntidadeAuditada.cs" />
     <Compile Include="Extensions\MyDbContextExtensions.cs" />
     <Compile Include="Models\Materia.cs" />
     <Compile Include="Models\Auditoria\MateriaAuditoria.cs" />
-    <Compile Include="Models\MyEntityExtensionsBase.cs" />
     <Compile Include="Models\PaginatedList.cs" />
     <Compile Include="Models\Tema.cs" />
     <Compile Include="Models\Auditoria\TemaAuditoria.cs" />

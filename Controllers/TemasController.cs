@@ -407,11 +407,47 @@ namespace MeuCantinhoDeEstudos3.Controllers
             return View();
         }
 
-        [HttpGet]
-        public FileResult GerarRelatorioExcel(string search)
+        private IQueryable<Tema> BuscarTemasExportacao(FiltroRequest request)
         {
             var userId = User.Identity.GetUserId<int>();
 
+            var temas = db.Temas
+                        .Include(t => t.Materia)
+                        .Where(t => t.Materia.UsuarioId == userId);
+
+            switch (request.OrdemClassificacao)
+            {
+                case "materia":
+                    temas = temas.OrderBy(t => t.Materia.Nome);
+                    break;
+                case "materia_desc":
+                    temas = temas.OrderByDescending(t => t.Materia.Nome);
+                    break;
+                case "Date":
+                    temas = temas.OrderBy(t => t.DataCriacao);
+                    break;
+                case "date_desc":
+                    temas = temas.OrderByDescending(t => t.DataCriacao);
+                    break;
+                case "tema_desc":
+                    temas = temas.OrderByDescending(t => t.Nome);
+                    break;
+                default:
+                    temas = temas.OrderBy(t => t.Nome);
+                    break;
+            }
+
+            if (!string.IsNullOrEmpty(request.Search))
+            {
+                temas = temas.Where(t => t.Nome.ToUpper().Contains(request.Search.ToUpper()));
+            }
+
+            return temas;
+        }
+
+        [HttpGet]
+        public async Task<FileResult> GerarRelatorioExcel(string ordemClassificacao, string search)
+        {
             using (var excelPackage = new ExcelPackage())
             {
                 excelPackage.Workbook.Properties.Author = "Meu Cantinho de Estudos";
@@ -428,18 +464,17 @@ namespace MeuCantinhoDeEstudos3.Controllers
                     sheet.Cells[1, i++].Value = titulo;
                 }
 
-                var temas = db.Temas
-                            .Include(t => t.Materia)
-                            .Where(t => t.Materia.UsuarioId == userId);
-
-                if (!string.IsNullOrEmpty(search))
+                var request = new FiltroRequest
                 {
-                    temas = temas.Where(t => t.Nome.ToUpper().Contains(search.ToUpper()));
-                }
+                    OrdemClassificacao = ordemClassificacao,
+                    Search = search
+                };
+
+                var temas = BuscarTemasExportacao(request);
 
                 //Valores
                 var r = 2;
-                foreach (var tema in temas)
+                foreach (var tema in await temas.ToListAsync())
                 {
                     sheet.Cells[r, 1].Value = tema.Nome;
                     sheet.Cells[r++, 2].Value = tema.Materia.Nome;
@@ -453,22 +488,18 @@ namespace MeuCantinhoDeEstudos3.Controllers
             }
         }
 
-        [HttpGet]
-        public ActionResult GerarRelatorioPDF(string search)
+        public async Task<ActionResult> GerarRelatorioPDF(string ordemClassificacao, string search)
         {
             //RazorPDF2
-            var userId = User.Identity.GetUserId<int>();
-
-            var temas = db.Temas
-                            .Include(t => t.Materia)
-                            .Where(t => t.Materia.UsuarioId == userId);
-
-            if (!string.IsNullOrEmpty(search))
+            var request = new FiltroRequest
             {
-                temas = temas.Where(t => t.Nome.ToUpper().Contains(search.ToUpper()));
-            }
+                OrdemClassificacao = ordemClassificacao,
+                Search = search
+            };
 
-            return new PdfActionResult("TemasReport", temas.ToList())
+            var temas = BuscarTemasExportacao(request);
+
+            return new PdfActionResult("TemasReport", await temas.ToListAsync())
             {
                 FileDownloadName = "Relatório-Temas.pdf"
             };

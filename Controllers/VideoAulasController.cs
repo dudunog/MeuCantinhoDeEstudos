@@ -380,11 +380,41 @@ namespace MeuCantinhoDeEstudos3.Controllers
             return View();
         }
 
-        [HttpGet]
-        public FileResult GerarRelatorioExcel(string search)
+        private IQueryable<VideoAula> BuscarVideoAulasExportacao(FiltroRequest request)
         {
             var userId = User.Identity.GetUserId<int>();
 
+            var videoAulas = db.VideoAulas
+                             .Include(a => a.Tema.Materia)
+                             .Where(a => a.Tema.Materia.UsuarioId == userId);
+
+            if (!string.IsNullOrEmpty(request.Search))
+            {
+                videoAulas = videoAulas.Where(v => v.Descricao.ToUpper().Contains(request.Search.ToUpper()));
+            }
+
+            switch (request.OrdemClassificacao)
+            {
+                case "Date":
+                    videoAulas = videoAulas.OrderBy(a => a.DataCriacao);
+                    break;
+                case "date_desc":
+                    videoAulas = videoAulas.OrderByDescending(a => a.DataCriacao);
+                    break;
+                case "descricao_desc":
+                    videoAulas = videoAulas.OrderByDescending(a => a.Descricao);
+                    break;
+                default:
+                    videoAulas = videoAulas.OrderBy(a => a.Descricao);
+                    break;
+            }
+
+            return videoAulas;
+        }
+
+        [HttpGet]
+        public FileResult GerarRelatorioExcel(string ordemClassificacao, string search)
+        {
             using (var excelPackage = new ExcelPackage())
             {
                 excelPackage.Workbook.Properties.Author = "Meu Cantinho de Estudos";
@@ -395,24 +425,23 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
                 //Títulos
                 var i = 1;
-                var titulos = new String[] { "Descrição", "Link do vídeo", "Matéria", "Tema" };
+                var titulos = new [] { "Descrição", "Link do vídeo", "Matéria", "Tema" };
                 foreach (var titulo in titulos)
                 {
                     sheet.Cells[1, i++].Value = titulo;
                 }
 
-                var videoaulas = db.VideoAulas
-                                .Include(a => a.Tema.Materia)
-                                .Where(a => a.Tema.Materia.UsuarioId == userId);
-
-                if (!string.IsNullOrEmpty(search))
+                var request = new FiltroRequest
                 {
-                    videoaulas = videoaulas.Where(v => v.Descricao.ToUpper().Contains(search.ToUpper()));
-                }
+                    OrdemClassificacao = ordemClassificacao,
+                    Search = search
+                };
+
+                var videoAulas = BuscarVideoAulasExportacao(request);
 
                 //Valores
                 var r = 2;
-                foreach (var videoaula in videoaulas)
+                foreach (var videoaula in videoAulas)
                 {
                     sheet.Cells[r, 1].Value = videoaula.Descricao;
                     sheet.Cells[r, 2].Value = videoaula.LinkVideo;
@@ -428,22 +457,18 @@ namespace MeuCantinhoDeEstudos3.Controllers
             }
         }
 
-        [HttpGet]
-        public ActionResult GerarRelatorioPDF(string search)
+        public async Task<ActionResult> GerarRelatorioPDF(string ordemClassificacao, string search)
         {
             //RazorPDF2
-            var userId = User.Identity.GetUserId<int>();
-
-            var videoaulas = db.VideoAulas
-                                .Include(a => a.Tema.Materia)
-                                .Where(a => a.Tema.Materia.UsuarioId == userId);
-
-            if (!string.IsNullOrEmpty(search))
+            var request = new FiltroRequest
             {
-                videoaulas = videoaulas.Where(v => v.Descricao.ToUpper().Contains(search.ToUpper()));
-            }
+                OrdemClassificacao = ordemClassificacao,
+                Search = search
+            };
 
-            return new PdfActionResult("VideoAulasReport", videoaulas.ToList())
+            var videoAulas = BuscarVideoAulasExportacao(request);
+
+            return new PdfActionResult("VideoAulasReport", await videoAulas.ToListAsync())
             {
                 FileDownloadName = "Relatório-Vídeoaulas.pdf"
             };
