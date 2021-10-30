@@ -309,10 +309,11 @@ namespace MeuCantinhoDeEstudos3.Controllers
         public async Task<ActionResult> InserirPorExcel()
         {
             var userId = User.Identity.GetUserId<int>();
-            
+
             if (Request.Files.Count > 0)
             {
                 var postedFile = Request.Files[0];
+
                 List<BateriaExercicio> exercicios = new List<BateriaExercicio>();
 
                 IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
@@ -329,27 +330,19 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 {
                     if (!(excelReader.IsDBNull(0) || excelReader.IsDBNull(1) || excelReader.IsDBNull(2)))
                     {
-                        try
+                        var bateriaExercicio = new BateriaExercicio()
                         {
-                            var bateriaExercicio = new BateriaExercicio()
-                            {
-                                TemaId = int.Parse(excelReader.GetValue(0).ToString()),
-                                Descricao = excelReader.GetString(1),
-                                QuantidadeExercicios = int.Parse(excelReader.GetValue(2).ToString()),
-                                QuantidadeAcertos = int.Parse(excelReader.GetValue(3).ToString()),
-                                DataCriacao = DateTime.Now,
-                                UsuarioCriacao = User.Identity.GetUserName(),
-                            };
+                            TemaId = int.Parse(excelReader.GetValue(0).ToString()),
+                            Descricao = excelReader.GetString(1),
+                            QuantidadeExercicios = int.Parse(excelReader.GetValue(2).ToString()),
+                            QuantidadeAcertos = int.Parse(excelReader.GetValue(3).ToString()),
+                            DataCriacao = DateTime.Now,
+                            UsuarioCriacao = User.Identity.GetUserName(),
+                        };
 
-                            bateriaExercicio.CalcularAproveitamento();
+                        bateriaExercicio.CalcularAproveitamento();
 
-                            exercicios.Add(bateriaExercicio);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e.Message);
-                            throw new Exception();
-                        }
+                        exercicios.Add(bateriaExercicio);
                     }
                 }
 
@@ -357,16 +350,9 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    try
-                    {
-                        db.BateriasExercicios.AddRange(exercicios);
-                        await db.BulkSaveChangesAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                        throw new Exception();
-                    }
+                    db.BateriasExercicios.AddRange(exercicios);
+                    //await db.BulkSaveChangesAsync();
+                    await db.BulkInsertAsync(exercicios);
 
                     scope.Complete();
                 }
@@ -402,6 +388,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 var postedFile = Request.Files[0];
 
+                List<BateriaExercicio> bateriasExercicios = new List<BateriaExercicio>();
+
                 IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
 
                 DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
@@ -411,8 +399,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
                         UseHeaderRow = true,
                     }
                 });
-
-                List<BateriaExercicio> bateriasExercicios = new List<BateriaExercicio>();
 
                 while (excelReader.Read())
                 {

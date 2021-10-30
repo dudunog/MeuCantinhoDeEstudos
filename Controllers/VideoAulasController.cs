@@ -261,7 +261,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
             if (Request.Files.Count > 0)
             {
                 var postedFile = Request.Files[0];
-                var videoAulas = new List<VideoAula>();
+
+                List<VideoAula> videoAulas = new List<VideoAula>();
 
                 IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
 
@@ -293,7 +294,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     db.VideoAulas.AddRange(videoAulas);
-                    await db.BulkSaveChangesAsync();
+                    await db.BulkInsertAsync(videoAulas);
 
                     scope.Complete();
                 }
@@ -330,6 +331,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 var postedFile = Request.Files[0];
 
+                List<VideoAula> videoAulas = new List<VideoAula>();
+
                 IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
 
                 DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
@@ -339,8 +342,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
                         UseHeaderRow = true,
                     }
                 });
-
-                List<VideoAula> videoAulas = new List<VideoAula>();
 
                 while (excelReader.Read())
                 {

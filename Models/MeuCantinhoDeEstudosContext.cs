@@ -48,7 +48,7 @@ namespace MeuCantinhoDeEstudos3.Models
                     // IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade<>))))
                     typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
                 {
-                    MyDbContextExtensions.ApplyCreationAndModificationProperts(entry);
+                    MyDbContextExtensions.ApplyCreationPropert(entry);
                 }
 
                 var audit = this.BeginAudit();
@@ -72,10 +72,11 @@ namespace MeuCantinhoDeEstudos3.Models
             }
 
             foreach (var entidade in ChangeTracker.Entries().Where(e => e.Entity != null &&
-                    MyDbContextExtensions.IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidadeAuditada<>))))
+                    MyDbContextExtensions.IsAssignableToGenericType(e.Entity.GetType(), typeof(EntidadeAuditada<>))))
                     // typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
             {
-                var tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[0].GenericTypeArguments[0];
+                //var tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[0].GenericTypeArguments[0];
+                var tipoTabelaAuditoria = entidade.Entity.GetType().BaseType.GetGenericArguments()[0];
                 var registroTabelaAuditoria = Activator.CreateInstance(tipoTabelaAuditoria);
 
                 var classePrincipal = ObjectAccessor.Create(entidade.Entity);
@@ -102,7 +103,7 @@ namespace MeuCantinhoDeEstudos3.Models
                     //IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade))))
                     typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
                 {
-                    MyDbContextExtensions.ApplyCreationAndModificationProperts(entry);
+                    MyDbContextExtensions.ApplyCreationPropert(entry);
                 }
 
                 var audit = this.BeginAudit();
@@ -127,10 +128,12 @@ namespace MeuCantinhoDeEstudos3.Models
             }
 
             foreach (var entidade in ChangeTracker.Entries().Where(e => e.Entity != null &&
-                    MyDbContextExtensions.IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidadeAuditada<>))))
+                    MyDbContextExtensions.IsAssignableToGenericType(e.Entity.GetType(), typeof(EntidadeAuditada<>))))
                     // typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
             {
-                var tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[0].GenericTypeArguments[0];
+                //var tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[0].GenericTypeArguments[0];
+                var tipoTabelaAuditoria = entidade.Entity.GetType().BaseType.GetGenericArguments()[0];
+                
                 var registroTabelaAuditoria = Activator.CreateInstance(tipoTabelaAuditoria);
 
                 var classePrincipal = ObjectAccessor.Create(entidade.Entity);

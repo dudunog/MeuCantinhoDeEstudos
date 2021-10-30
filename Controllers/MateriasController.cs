@@ -280,6 +280,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 List<Materia> materias = new List<Materia>();
 
                 IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
+
                 DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
                 {
                     ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
@@ -333,6 +334,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 var postedFile = Request.Files[0];
 
+                List<Materia> materias = new List<Materia>();
+
                 IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
 
                 DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
@@ -342,8 +345,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
                         UseHeaderRow = true,
                     }
                 });
-
-                var materias = new List<Materia>();
 
                 while (excelReader.Read())
                 {
@@ -357,7 +358,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                                           .Include(m => m.Usuario)
                                           .FirstAsync(m => m.UsuarioId == userId && m.MateriaId == materiaId);
                             materia.Nome = excelReader.GetString(1);
-                            materia.CorIdentificacao = excelReader.GetString(2);
+                            materia.CorIdentificacao = excelReader.GetString(2).Replace(" ", "");
 
                             db.Entry(materia).State = EntityState.Modified;
                             materias.Add(materia);

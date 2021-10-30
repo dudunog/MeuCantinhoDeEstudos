@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -7,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MeuCantinhoDeEstudos3.Models
 {
-    public class Tema : IEntidadeAuditada<TemaAuditoria>
+    public class Tema : EntidadeAuditada<TemaAuditoria>
     {
         [Key]
         public int TemaId { get; set; }
@@ -26,16 +25,5 @@ namespace MeuCantinhoDeEstudos3.Models
 
         [JsonIgnore]
         public virtual ICollection<Atividade> Atividades { get; set; }
-
-        [DisplayName("Criado em")]
-        public DateTime DataCriacao { get; set; }
-
-        [DisplayName("Criado por")]
-        public string UsuarioCriacao { get; set; }
-
-        [DisplayName("Modificado em")]
-        public DateTime? UltimaModificacao { get; set; }
-
-        public string UsuarioModificacao { get; set; }
     }
 }

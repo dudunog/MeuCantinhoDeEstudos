@@ -289,6 +289,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 List<Tema> temas = new List<Tema>();
 
                 IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
+                
                 DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
                 {
                     ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
@@ -358,6 +359,8 @@ namespace MeuCantinhoDeEstudos3.Controllers
             {
                 var postedFile = Request.Files[0];
 
+                List<Tema> temas = new List<Tema>();
+
                 IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(postedFile.InputStream);
 
                 DataSet result = excelReader.AsDataSet(new ExcelDataSetConfiguration()
@@ -367,8 +370,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
                         UseHeaderRow = true,
                     }
                 });
-
-                List<Tema> temas = new List<Tema>();
 
                 while (excelReader.Read())
                 {

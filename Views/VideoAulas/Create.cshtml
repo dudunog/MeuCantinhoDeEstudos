@@ -47,7 +47,7 @@
         <div class="form-group">
             @Html.LabelFor(model => model.LinkVideo, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.EditorFor(model => model.LinkVideo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Colo do vídeo" } })
+                @Html.EditorFor(model => model.LinkVideo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Link do vídeo" } })
                 @Html.ValidationMessageFor(model => model.LinkVideo, "", new { @class = "text-danger" })
             </div>
         </div>
