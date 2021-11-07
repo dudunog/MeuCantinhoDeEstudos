@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
+using MeuCantinhoDeEstudos3.Models.Auditoria;
+using MeuCantinhoDeEstudos3.Models.Interfaces;
 
 namespace MeuCantinhoDeEstudos3.Models
 {
-    public class BateriaExercicio : Atividade
+    public class BateriaExercicio : Atividade, IEntidadeAuditada<BateriaExercicioAuditoria>
     {
         [DisplayName("Quantidade de exercícios")]
         public int QuantidadeExercicios { get; set; }

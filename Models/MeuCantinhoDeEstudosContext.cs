@@ -12,6 +12,7 @@ using EntityFramework.Extensions;
 using EntityFramework.Audit;
 using EntityFramework.Triggers;
 using MeuCantinhoDeEstudos3.Extensions;
+using MeuCantinhoDeEstudos3.Models.Auditoria;
 
 namespace MeuCantinhoDeEstudos3.Models
 {
@@ -32,11 +33,14 @@ namespace MeuCantinhoDeEstudos3.Models
         public DbSet<Tema> Temas { get; set; }
         public DbSet<TemaAuditoria> TemaAuditoria { get; set; }
         public DbSet<Atividade> Atividades { get; set; }
+        public DbSet<AtividadeAuditoria> AtividadeAuditoria { get; set; }
+        public DbSet<VideoAulaAuditoria> VideoAulaAuditoria { get; set; }
+        public DbSet<BateriaExercicioAuditoria> BateriaExercicioAuditoria { get; set; }
         public DbSet<BateriaExercicio> BateriasExercicios { get; set; }
         public DbSet<VideoAula> VideoAulas { get; set; }
-        public DbSet<UsuarioInformacoes> UsuarioInformacoes { get; set; }
         public DbSet<UsuarioLog> UsuarioLogs { get; set; }
         public DbSet<UsuarioLogValores> UsuarioLogValores { get; set; }
+        public DbSet<UsuarioInformacoes> UsuarioInformacoes { get; set; }
         public DbSet<UsuarioInformacoesLog> UsuarioInformacoesLogs { get; set; }
         public DbSet<UsuarioInformacoesLogValores> UsuarioInformacoesLogValores { get; set; }
 
@@ -75,8 +79,17 @@ namespace MeuCantinhoDeEstudos3.Models
                     MyDbContextExtensions.IsAssignableToGenericType(e.Entity.GetType(), typeof(EntidadeAuditada<>))))
                     // typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
             {
-                //var tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[0].GenericTypeArguments[0];
-                var tipoTabelaAuditoria = entidade.Entity.GetType().BaseType.GetGenericArguments()[0];
+                var temArgumentosGenericos = entidade.Entity.GetType().BaseType.GetGenericArguments().Any();
+
+                Type tipoTabelaAuditoria;
+
+                //Verifica se é do tipo Materia ou Tema
+                if (temArgumentosGenericos)
+                    tipoTabelaAuditoria = entidade.Entity.GetType().BaseType.GetGenericArguments()[0];
+                //Se não for, ou é do tipo Atividade, ou VideoAula ou BateriasExercicios
+                else
+                    tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[1].GetGenericArguments()[0];
+
                 var registroTabelaAuditoria = Activator.CreateInstance(tipoTabelaAuditoria);
 
                 var classePrincipal = ObjectAccessor.Create(entidade.Entity);
@@ -131,9 +144,17 @@ namespace MeuCantinhoDeEstudos3.Models
                     MyDbContextExtensions.IsAssignableToGenericType(e.Entity.GetType(), typeof(EntidadeAuditada<>))))
                     // typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
             {
-                //var tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[0].GenericTypeArguments[0];
-                var tipoTabelaAuditoria = entidade.Entity.GetType().BaseType.GetGenericArguments()[0];
-                
+                var temArgumentosGenericos = entidade.Entity.GetType().BaseType.GetGenericArguments().Any();
+
+                Type tipoTabelaAuditoria;
+
+                //Verifica se é do tipo Materia ou Tema
+                if (temArgumentosGenericos)
+                    tipoTabelaAuditoria = entidade.Entity.GetType().BaseType.GetGenericArguments()[0];
+                //Se não for, ou é do tipo Atividade, ou VideoAula ou BateriasExercicios
+                else
+                    tipoTabelaAuditoria = entidade.Entity.GetType().GetInterfaces()[1].GetGenericArguments()[0];
+
                 var registroTabelaAuditoria = Activator.CreateInstance(tipoTabelaAuditoria);
 
                 var classePrincipal = ObjectAccessor.Create(entidade.Entity);
@@ -201,7 +222,6 @@ namespace MeuCantinhoDeEstudos3.Models
 
         private static async Task ApplyAuditInUsuarioEntityAsync(MeuCantinhoDeEstudosContext db, AuditLogger audit)
         {
-            //MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
             List<UsuarioLogValores> auditLogsValores = new List<UsuarioLogValores>();
 
             foreach (var entry in db.ChangeTracker.Entries().Where(e => e.Entity != null &&

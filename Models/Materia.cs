@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using MeuCantinhoDeEstudos3.Models.Auditoria;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;

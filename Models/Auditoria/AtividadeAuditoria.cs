@@ -1,24 +1,30 @@
-﻿using MeuCantinhoDeEstudos3.Models.Auditoria;
-using Newtonsoft.Json;
-using System.ComponentModel;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MeuCantinhoDeEstudos3.Models
+namespace MeuCantinhoDeEstudos3.Models.Auditoria
 {
-    public class Atividade : EntidadeAuditada<AtividadeAuditoria>
+    public class AtividadeAuditoria
     {
         [Key]
+        public int Id { get; set; }
+
         public int AtividadeId { get; set; }
 
-        [DisplayName("Tema")]
         public int TemaId { get; set; }
 
         [Required]
-        [DisplayName("Descrição/Observação")]
         public string Descricao { get; set; }
 
         [ForeignKey(nameof(TemaId))]
         public virtual Tema Tema { get; set; }
+
+        public DateTime DataCriacao { get; set; }
+
+        public string UsuarioCriacao { get; set; }
+
+        public DateTime? UltimaModificacao { get; set; }
+
+        public string UsuarioModificacao { get; set; }
     }
 }

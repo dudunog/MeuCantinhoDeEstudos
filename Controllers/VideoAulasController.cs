@@ -203,7 +203,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
         // POST: VideoAulas/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "AtividadeId,TemaId,Descricao,LinkVideo")] VideoAulaViewModel viewModel)
+        public async Task<ActionResult> Edit([Bind(Include = "AtividadeId,TemaId,Descricao,LinkVideo,DataCriacao,UsuarioCriacao")] VideoAulaViewModel viewModel)
         {
             VideoAula videoAula = mapper.Map<VideoAula>(viewModel);
 
@@ -294,7 +294,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     db.VideoAulas.AddRange(videoAulas);
-                    await db.BulkInsertAsync(videoAulas);
+                    await db.MyBulkInsertAsync(videoAulas);
 
                     scope.Complete();
                 }

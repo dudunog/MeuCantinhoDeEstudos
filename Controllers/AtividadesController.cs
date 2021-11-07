@@ -200,7 +200,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
         // POST: Atividades/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "AtividadeId,TemaId,Descricao")] AtividadeViewModel viewModel)
+        public async Task<ActionResult> Edit([Bind(Include = "AtividadeId,TemaId,Descricao,DataCriacao,UsuarioCriacao")] AtividadeViewModel viewModel)
         {
             Atividade atividade = mapper.Map<Atividade>(viewModel);
 

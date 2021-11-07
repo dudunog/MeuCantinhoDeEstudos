@@ -241,7 +241,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
         // POST: BateriaExercicios/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "AtividadeId,Descricao,MateriaId,TemaId,QuantidadeExercicios,QuantidadeAcertos")] BateriaExercicioViewModel viewModel)
+        public async Task<ActionResult> Edit([Bind(Include = "AtividadeId,Descricao,MateriaId,TemaId,QuantidadeExercicios,QuantidadeAcertos,DataCriacao,UsuarioCriacao")] BateriaExercicioViewModel viewModel)
         {
             BateriaExercicio bateriaExercicio = mapper.Map<BateriaExercicio>(viewModel);
 
@@ -351,8 +351,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     db.BateriasExercicios.AddRange(exercicios);
-                    //await db.BulkSaveChangesAsync();
-                    await db.BulkInsertAsync(exercicios);
+                    await db.MyBulkInsertAsync(exercicios);
 
                     scope.Complete();
                 }

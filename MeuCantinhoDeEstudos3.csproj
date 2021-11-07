@@ -206,8 +206,8 @@
       <Private>True</Private>
       <HintPath>packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="Z.EntityFramework.Extensions, Version=5.2.13.0, Culture=neutral, PublicKeyToken=59b66d028979105b, processorArchitecture=MSIL">
-      <HintPath>packages\Z.EntityFramework.Extensions.5.2.13\lib\net45\Z.EntityFramework.Extensions.dll</HintPath>
+    <Reference Include="Z.EntityFramework.Extensions, Version=5.2.16.0, Culture=neutral, PublicKeyToken=59b66d028979105b, processorArchitecture=MSIL">
+      <HintPath>packages\Z.EntityFramework.Extensions.5.2.16\lib\net45\Z.EntityFramework.Extensions.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -286,6 +286,9 @@
     <Compile Include="Mappers\AutoMapperConfig.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Atividade.cs" />
+    <Compile Include="Models\Auditoria\AtividadeAuditoria.cs" />
+    <Compile Include="Models\Auditoria\BateriaExercicioAuditoria.cs" />
+    <Compile Include="Models\Auditoria\VideoAulaAuditoria.cs" />
     <Compile Include="Models\BateriaExercicio.cs" />
     <Compile Include="Models\BateriaExercicioFormViewModel.cs" />
     <Compile Include="Models\FiltroRequest.cs" />
@@ -294,8 +297,9 @@
     <Compile Include="Models\Entidade.cs" />
     <Compile Include="Models\Grupo.cs" />
     <Compile Include="Models\Interfaces\IEntidade.cs" />
-    <Compile Include="Models\Interfaces\IEntidadeAuditada.cs" />
+    <Compile Include="Models\EntidadeAuditada.cs" />
     <Compile Include="Extensions\MyDbContextExtensions.cs" />
+    <Compile Include="Models\Interfaces\IEntidadeAuditada.cs" />
     <Compile Include="Models\Materia.cs" />
     <Compile Include="Models\Auditoria\MateriaAuditoria.cs" />
     <Compile Include="Models\PaginatedList.cs" />

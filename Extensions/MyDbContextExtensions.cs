@@ -33,7 +33,6 @@ namespace MeuCantinhoDeEstudos3.Extensions
             return IsAssignableToGenericType(baseType, genericType);
         }
 
-        
         public async static Task MyBulkInsertAsync<T>(this DbContext @this, IEnumerable<T> entities) where T : class
         {
             try
@@ -44,7 +43,7 @@ namespace MeuCantinhoDeEstudos3.Extensions
                     ApplyCreationAndModificationProperts(entry);
                 }
 
-                //await @this.BulkInsertAsync(entities);
+                await @this.BulkInsertAsync(entities);
             }
             catch (DbEntityValidationException ex)
             {
@@ -59,15 +58,25 @@ namespace MeuCantinhoDeEstudos3.Extensions
                 throw new DbEntityValidationException(exceptionsMessage, ex.EntityValidationErrors);
             }
 
-            foreach (var entidade in @this.ChangeTracker.Entries().Where(e => e.Entity != null &&
-                    IsAssignableToGenericType(e.Entity.GetType(), typeof(EntidadeAuditada<>))))
+            List<object> entidadesAuditadas = new List<object>();
+
+            foreach (var entidade in entities)
             {
-                var tipoTabelaAuditoria = entidade.Entity.GetType().BaseType.GetGenericArguments()[0];
-                
+                var temArgumentosGenericos = entidade.GetType().BaseType.GetGenericArguments().Any();
+
+                Type tipoTabelaAuditoria;
+
+                //Verifica se é do tipo Materia ou Tema
+                if (temArgumentosGenericos)
+                    tipoTabelaAuditoria = entidade.GetType().BaseType.GetGenericArguments()[0];
+                //Se não for, ou é do tipo Atividade, ou VideoAula ou BateriasExercicios
+                else
+                    tipoTabelaAuditoria = entidade.GetType().GetInterfaces()[1].GetGenericArguments()[0];
+
                 var registroTabelaAuditoria = Activator.CreateInstance(tipoTabelaAuditoria);
 
-                var classePrincipal = ObjectAccessor.Create(entidade.Entity);
-                var typer_classePrincipal = TypeAccessor.Create(entidade.Entity.GetType());
+                var classePrincipal = ObjectAccessor.Create(entidade);
+                var typer_classePrincipal = TypeAccessor.Create(entidade.GetType());
                 var classeAuditoria = ObjectAccessor.Create(registroTabelaAuditoria);
 
                 foreach (var member in typer_classePrincipal.GetMembers())
@@ -75,10 +84,10 @@ namespace MeuCantinhoDeEstudos3.Extensions
                     classeAuditoria[member.Name] = classePrincipal[member.Name];
                 }
 
-                @this.Set(registroTabelaAuditoria.GetType()).Add(classeAuditoria.Target);
+                entidadesAuditadas.Add(classeAuditoria.Target);
             }
 
-            await @this.BulkSaveChangesAsync();
+            await @this.BulkInsertAsync(entidadesAuditadas);
         }
 
         public async static Task MyBulkUpdateAsync<T>(this DbContext @this, IEnumerable<T> entities) where T : class
@@ -91,7 +100,7 @@ namespace MeuCantinhoDeEstudos3.Extensions
                     ApplyCreationAndModificationProperts(entry);
                 }
 
-                //await @this.BulkUpdateAsync(entities);
+                await @this.BulkUpdateAsync(entities);
             }
             catch (DbEntityValidationException ex)
             {
@@ -106,15 +115,25 @@ namespace MeuCantinhoDeEstudos3.Extensions
                 throw new DbEntityValidationException(exceptionsMessage, ex.EntityValidationErrors);
             }
 
-            foreach (var entidade in @this.ChangeTracker.Entries().Where(e => e.Entity != null &&
-                    IsAssignableToGenericType(e.Entity.GetType(), typeof(EntidadeAuditada<>))))
+            List<object> entidadesAuditadas = new List<object>();
+
+            foreach (var entidade in entities)
             {
-                var tipoTabelaAuditoria = entidade.Entity.GetType().BaseType.BaseType.GetGenericArguments()[0];
+                var temArgumentosGenericos = entidade.GetType().BaseType.BaseType.GetGenericArguments().Any();
+
+                Type tipoTabelaAuditoria;
+
+                //Verifica se é do tipo Materia ou Tema
+                if (temArgumentosGenericos)
+                    tipoTabelaAuditoria = entidade.GetType().BaseType.BaseType.GetGenericArguments()[0];
+                //Se não for, ou é do tipo Atividade, ou VideoAula ou BateriasExercicios
+                else
+                    tipoTabelaAuditoria = entidade.GetType().BaseType.GetInterfaces()[1].GetGenericArguments()[0];
 
                 var registroTabelaAuditoria = Activator.CreateInstance(tipoTabelaAuditoria);
 
-                var classePrincipal = ObjectAccessor.Create(entidade.Entity);
-                var typer_classePrincipal = TypeAccessor.Create(entidade.Entity.GetType());
+                var classePrincipal = ObjectAccessor.Create(entidade);
+                var typer_classePrincipal = TypeAccessor.Create(entidade.GetType());
                 var classeAuditoria = ObjectAccessor.Create(registroTabelaAuditoria);
 
                 foreach (var member in typer_classePrincipal.GetMembers())
@@ -125,25 +144,10 @@ namespace MeuCantinhoDeEstudos3.Extensions
                     }
                 }
 
-                @this.Set(registroTabelaAuditoria.GetType()).Add(classeAuditoria.Target);
+                entidadesAuditadas.Add(classeAuditoria.Target);
             }
 
-            try
-            {
-                await @this.BulkSaveChangesAsync();
-            }
-            catch (DbEntityValidationException ex)
-            {
-                var errorMessages = ex.EntityValidationErrors
-                    .SelectMany(x => x.ValidationErrors)
-                    .Select(x => x.ErrorMessage);
-
-                var fullErrorMessage = string.Join("; ", errorMessages);
-
-                var exceptionsMessage = string.Concat(ex.Message, "Os erros de validações são: ", fullErrorMessage);
-
-                throw new DbEntityValidationException(exceptionsMessage, ex.EntityValidationErrors);
-            }
+            await @this.BulkInsertAsync(entidadesAuditadas);
         }
 
         public static void ApplyCreationPropert(DbEntityEntry entry)
