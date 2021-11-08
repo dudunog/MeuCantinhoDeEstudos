@@ -50,5 +50,10 @@ namespace MeuCantinhoDeEstudos3.Models
         public string UsuarioCriacao { get; set; }
         public DateTime? UltimaModificacao { get; set; }
         public string UsuarioModificacao { get; set; }
+
+        static Usuario() {
+            Triggers<Usuario>.Inserting += entry => entry.Entity.DataCriacao = DateTime.Now;
+            Triggers<Usuario>.Updating += entry => entry.Entity.UltimaModificacao = DateTime.Now;
+        }
     }
 }
