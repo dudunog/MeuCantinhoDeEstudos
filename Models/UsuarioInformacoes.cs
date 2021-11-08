@@ -1,5 +1,6 @@
-﻿using MeuCantinhoDeEstudos3.Models.Interfaces;
-using System;
+﻿using System;
+using EntityFramework.Triggers;
+using MeuCantinhoDeEstudos3.Models.Interfaces;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -31,5 +32,11 @@ namespace MeuCantinhoDeEstudos3.Models
         public DateTime? UltimaModificacao { get; set; }
 
         public string UsuarioModificacao { get; set; }
+
+        static UsuarioInformacoes()
+        {
+            Triggers<UsuarioInformacoes>.Inserting += entry => entry.Entity.DataCriacao = DateTime.Now;
+            Triggers<UsuarioInformacoes>.Updating += entry => entry.Entity.UltimaModificacao = DateTime.Now;
+        }
     }
 }

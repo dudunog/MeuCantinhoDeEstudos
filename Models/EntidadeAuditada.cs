@@ -1,6 +1,6 @@
-﻿using EntityFramework.Triggers;
+﻿using System;
+using EntityFramework.Triggers;
 using MeuCantinhoDeEstudos3.Models.Interfaces;
-using System;
 using System.ComponentModel;
 
 namespace MeuCantinhoDeEstudos3.Models

@@ -1,5 +1,4 @@
 ﻿using FastMember;
-using MeuCantinhoDeEstudos3.Models;
 using MeuCantinhoDeEstudos3.Models.Interfaces;
 using System;
 using System.Collections.Generic;
