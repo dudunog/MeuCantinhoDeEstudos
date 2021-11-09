@@ -247,15 +247,20 @@ namespace MeuCantinhoDeEstudos3.Models
 
                         await db.SaveChangesWithTriggersAsync(db.SaveChangesAsync);
 
-                        foreach (var propery in auditEntry.Properties)
+                        foreach (var property in auditEntry.Properties)
                         {
                             var usuarioLogValores = new UsuarioLogValores()
                             {
                                 UsuarioLogId = usuarioLog.UsuarioLogId,
-                                NomePropriedade = propery.Name.ToString(),
-                                ValorAntigo = propery.Original != null ? propery.Original.ToString() : null,
-                                ValorNovo = propery.Current != null ? propery.Current.ToString() : null,
+                                NomePropriedade = property.Name.ToString(),
+                                ValorAntigo = property.Original != null ? property.Original.ToString() : null,
+                                ValorNovo = property.Current != null ? property.Current.ToString() : null,
                             };
+
+                            if (property.Name == "Id")
+                            {
+                                usuarioLogValores.ValorNovo = entry.Property("Id").CurrentValue.ToString();
+                            }
 
                             auditLogsValores.Add(usuarioLogValores);
                         }
