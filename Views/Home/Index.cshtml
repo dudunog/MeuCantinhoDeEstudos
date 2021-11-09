@@ -7,10 +7,15 @@
     <p class="lead">Descubra como o Meu cantinho de estudos vai melhorar sua rotina e aumentar as suas chances de aprovação.</p>
     <p>
         @*<a href="https://asp.net" class="btn btn-primary btn-lg">Login &raquo;</a>
-            <a href="https://asp.net" class="btn btn-primary btn-lg">Criar conta &raquo;</a>*@
+        <a href="https://asp.net" class="btn btn-primary btn-lg">Criar conta &raquo;</a>*@
 
-        @Html.ActionLink("Login", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink", @class = "btn btn-primary btn-lg" })
-        @Html.ActionLink("Criar conta", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink", @class = "btn btn-primary btn-lg" })
+        @if (!HttpContext.Current.User.Identity.IsAuthenticated)
+        {
+            <div>
+                @Html.ActionLink("Login", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink", @class = "btn btn-primary btn-lg" })
+                @Html.ActionLink("Criar conta", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink", @class = "btn btn-primary btn-lg" })
+            </div>
+        }
     </p>
 </div>
 
