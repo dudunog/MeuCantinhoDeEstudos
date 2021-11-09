@@ -1,11 +1,9 @@
+using MeuCantinhoDeEstudos3.Models;
+using System.Data.Entity.Migrations;
+using System.Linq;
+
 namespace MeuCantinhoDeEstudos3.Migrations
 {
-    using MeuCantinhoDeEstudos3.Models;
-    using System;
-    using System.Data.Entity;
-    using System.Data.Entity.Migrations;
-    using System.Linq;
-
     internal sealed class Configuration : DbMigrationsConfiguration<MeuCantinhoDeEstudosContext>
     {
         public Configuration()
@@ -14,12 +12,62 @@ namespace MeuCantinhoDeEstudos3.Migrations
             AutomaticMigrationDataLossAllowed = true;
         }
 
-        protected override void Seed(MeuCantinhoDeEstudosContext context)
+        protected async override void Seed(MeuCantinhoDeEstudosContext context)
         {
             //  This method will be called after migrating to the latest version.
 
-            //  You can use the DbSet<T>.AddOrUpdate() helper extension method 
-            //  to avoid creating duplicate seed data.
+            //Usuario usuario = context.Users.FirstOrDefault();
+
+            //Materia materia = new Materia()
+            //{
+            //    Nome = "Matemática",
+            //    CorIdentificacao = "#000",
+            //    UsuarioId = usuario.Id
+            //};
+
+            //context.Materias.Add(materia);
+            //context.SaveChanges();
+
+            //Tema tema = new Tema()
+            //{
+            //    MateriaId = materia.MateriaId,
+            //    Nome = "Probabilidade"
+            //};
+
+            //context.Temas.Add(tema);
+            //context.SaveChanges();
+
+            //Atividade atividade = new Atividade()
+            //{
+            //    TemaId = tema.TemaId,
+            //    Descricao = "Atividade de leitura do livro de matemática sobre conjuntos"
+            //};
+
+            //db.Atividades.Add(atividade);
+            //await db.SaveChangesAsync();
+
+            //VideoAula videoAula = new VideoAula()
+            //{
+            //    TemaId = tema.TemaId,
+            //    Descricao = "Vídeoaula do youtube sobre conjuntos",
+            //    LinkVideo = "youtube.com/watch?v=dasdasdad"
+            //};
+
+            //db.VideoAulas.Add(videoAula);
+            //await db.SaveChangesAsync();
+
+            //BateriaExercicio bateriaExercicio = new BateriaExercicio()
+            //{
+            //    TemaId = tema.TemaId,
+            //    Descricao = "Exercícios do livro de matemática sobre conjuntos",
+            //    QuantidadeExercicios = 40,
+            //    QuantidadeAcertos = 50
+            //};
+
+            //bateriaExercicio.CalcularAproveitamento();
+
+            //db.BateriasExercicios.Add(bateriaExercicio);
+            //await db.SaveChangesAsync();
         }
     }
 }
