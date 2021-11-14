@@ -57,12 +57,21 @@ namespace MeuCantinhoDeEstudos3.Controllers
             ViewBag.ParametroClassificacaoMateria = ordemClassificacao == "materia" ? "materia_desc" : "materia";
             ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
 
-            var paginatedList = await BuscarTemas(userId, request);
+            PaginatedList<Tema> paginatedList = await PaginarTemas(userId, request);
 
             return View(paginatedList);
         }
 
-        private async Task<PaginatedList<Tema>> BuscarTemas(int userId, FiltroRequest request)
+        private async Task<PaginatedList<Tema>> PaginarTemas(int userId, FiltroRequest request)
+        {
+            IQueryable<Tema> temas = BuscarTemas(userId, request);
+
+            int tamanhoPagina = 100;
+
+            return await PaginatedList<Tema>.CreateAsync(temas, request.NumeroPagina ?? 1, tamanhoPagina);
+        }
+
+        private IQueryable<Tema> BuscarTemas(int userId, FiltroRequest request)
         {
             var temas = db.Temas
                         .Include(t => t.Materia.Usuario)
@@ -95,9 +104,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 temas = temas.Where(t => t.Nome.ToUpper().Contains(request.Search.ToUpper()));
             }
 
-            int tamanhoPagina = 100;
-
-            return await PaginatedList<Tema>.CreateAsync(temas, request.NumeroPagina ?? 1, tamanhoPagina);
+            return temas;
         }
 
         // GET: Temas/Details/5
@@ -410,47 +417,11 @@ namespace MeuCantinhoDeEstudos3.Controllers
             return View();
         }
 
-        private IQueryable<Tema> BuscarTemasExportacao(FiltroRequest request)
-        {
-            var userId = User.Identity.GetUserId<int>();
-
-            var temas = db.Temas
-                        .Include(t => t.Materia)
-                        .Where(t => t.Materia.UsuarioId == userId);
-
-            switch (request.OrdemClassificacao)
-            {
-                case "materia":
-                    temas = temas.OrderBy(t => t.Materia.Nome);
-                    break;
-                case "materia_desc":
-                    temas = temas.OrderByDescending(t => t.Materia.Nome);
-                    break;
-                case "Date":
-                    temas = temas.OrderBy(t => t.DataCriacao);
-                    break;
-                case "date_desc":
-                    temas = temas.OrderByDescending(t => t.DataCriacao);
-                    break;
-                case "tema_desc":
-                    temas = temas.OrderByDescending(t => t.Nome);
-                    break;
-                default:
-                    temas = temas.OrderBy(t => t.Nome);
-                    break;
-            }
-
-            if (!string.IsNullOrEmpty(request.Search))
-            {
-                temas = temas.Where(t => t.Nome.ToUpper().Contains(request.Search.ToUpper()));
-            }
-
-            return temas;
-        }
-
         [HttpGet]
         public async Task<FileResult> GerarRelatorioExcel(string ordemClassificacao, string search)
         {
+            var userId = User.Identity.GetUserId<int>();
+
             using (var excelPackage = new ExcelPackage())
             {
                 excelPackage.Workbook.Properties.Author = "Meu Cantinho de Estudos";
@@ -478,7 +449,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                     Search = search
                 };
 
-                var temas = BuscarTemasExportacao(request);
+                var temas = BuscarTemas(userId, request);
 
                 //Valores
                 var r = 2;
@@ -499,13 +470,16 @@ namespace MeuCantinhoDeEstudos3.Controllers
         public async Task<ActionResult> GerarRelatorioPDF(string ordemClassificacao, string search)
         {
             //RazorPDF2
+
+            var userId = User.Identity.GetUserId<int>();
+
             var request = new FiltroRequest
             {
                 OrdemClassificacao = ordemClassificacao,
                 Search = search
             };
 
-            var temas = BuscarTemasExportacao(request);
+            IQueryable<Tema> temas = BuscarTemas(userId, request);
 
             return new PdfActionResult("TemasReport", await temas.ToListAsync())
             {

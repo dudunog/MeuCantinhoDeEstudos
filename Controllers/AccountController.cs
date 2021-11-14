@@ -7,8 +7,6 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using MeuCantinhoDeEstudos3.Models;
 using MeuCantinhoDeEstudos3.ViewModels;
-using System.Transactions;
-using System.Data.Entity;
 using Z.BulkOperations;
 using System.Collections.Generic;
 using MeuCantinhoDeEstudos3.Models.ClassesDeLog;
@@ -156,16 +154,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
             if (ModelState.IsValid)
             {
                 var user = new Usuario { UserName = model.Email, Email = model.Email };
-
-                //List<AuditEntry> auditEntries = new List<AuditEntry>();
-
-                //db.BulkSaveChanges(options =>
-                //{
-                //    options.UseAudit = true;
-                //    options.AuditEntries = auditEntries;
-                //});
-
-                //await SaveUsuarioAuditChanges(auditEntries, User.Identity.GetUserId<int>());
 
                 var result = await UserManager.CreateAsync(user, model.Password);
 

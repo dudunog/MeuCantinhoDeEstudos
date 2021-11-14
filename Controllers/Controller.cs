@@ -1,6 +1,7 @@
-﻿using System.Web.Mvc;
+﻿using MeuCantinhoDeEstudos3.Extensions;
+using System.Web.Mvc;
 
-namespace MeuCantinhoDeEstudos3.Extensions
+namespace MeuCantinhoDeEstudos3.Controllers
 {
     public abstract class Controller : System.Web.Mvc.Controller
     {

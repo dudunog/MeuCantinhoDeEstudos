@@ -278,7 +278,7 @@
     <Compile Include="Controllers\TemasController.cs" />
     <Compile Include="Controllers\UsuarioInformacoesController.cs" />
     <Compile Include="Controllers\VideoAulasController.cs" />
-    <Compile Include="Extensions\Controller.cs" />
+    <Compile Include="Controllers\Controller.cs" />
     <Compile Include="Extensions\CustomJsonResult.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

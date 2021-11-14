@@ -56,16 +56,25 @@ namespace MeuCantinhoDeEstudos3.Controllers
             ViewBag.ParametroClassificacaoDescricao = string.IsNullOrEmpty(ordemClassificacao) ? "descricao_desc" : "";
             ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
 
-            var paginatedList = await BuscarVideoAulas(userId, request);
+            var paginatedList = await PaginarVideoAulas(userId, request);
 
             return View(paginatedList);
         }
 
-        private async Task<PaginatedList<VideoAula>> BuscarVideoAulas(int userId, FiltroRequest request)
+        private async Task<PaginatedList<VideoAula>> PaginarVideoAulas(int userId, FiltroRequest request)
+        {
+            IQueryable<VideoAula> videoAulas = BuscarVideoAulas(userId, request);
+
+            int tamanhoPagina = 100;
+
+            return await PaginatedList<VideoAula>.CreateAsync(videoAulas, request.NumeroPagina ?? 1, tamanhoPagina);
+        }
+
+        private IQueryable<VideoAula> BuscarVideoAulas(int userId, FiltroRequest request)
         {
             var videoAulas = db.VideoAulas
-                             .Include(v => v.Tema.Materia)
-                             .Where(v => v.Tema.Materia.UsuarioId == userId);
+                             .Include(a => a.Tema.Materia)
+                             .Where(a => a.Tema.Materia.UsuarioId == userId);
 
             switch (request.OrdemClassificacao)
             {
@@ -88,8 +97,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 videoAulas = videoAulas.Where(v => v.Descricao.ToUpper().Contains(request.Search.ToUpper()));
             }
 
-            int tamanhoPagina = 100;
-            return await PaginatedList<VideoAula>.CreateAsync(videoAulas, request.NumeroPagina ?? 1, tamanhoPagina);
+            return videoAulas;
         }
 
         // GET: VideoAulas/Details/5
@@ -383,41 +391,11 @@ namespace MeuCantinhoDeEstudos3.Controllers
             return View();
         }
 
-        private IQueryable<VideoAula> BuscarVideoAulasExportacao(FiltroRequest request)
+        [HttpGet]
+        public async Task<FileResult> GerarRelatorioExcel(string ordemClassificacao, string search)
         {
             var userId = User.Identity.GetUserId<int>();
 
-            var videoAulas = db.VideoAulas
-                             .Include(a => a.Tema.Materia)
-                             .Where(a => a.Tema.Materia.UsuarioId == userId);
-
-            if (!string.IsNullOrEmpty(request.Search))
-            {
-                videoAulas = videoAulas.Where(v => v.Descricao.ToUpper().Contains(request.Search.ToUpper()));
-            }
-
-            switch (request.OrdemClassificacao)
-            {
-                case "Date":
-                    videoAulas = videoAulas.OrderBy(a => a.DataCriacao);
-                    break;
-                case "date_desc":
-                    videoAulas = videoAulas.OrderByDescending(a => a.DataCriacao);
-                    break;
-                case "descricao_desc":
-                    videoAulas = videoAulas.OrderByDescending(a => a.Descricao);
-                    break;
-                default:
-                    videoAulas = videoAulas.OrderBy(a => a.Descricao);
-                    break;
-            }
-
-            return videoAulas;
-        }
-
-        [HttpGet]
-        public FileResult GerarRelatorioExcel(string ordemClassificacao, string search)
-        {
             using (var excelPackage = new ExcelPackage())
             {
                 excelPackage.Workbook.Properties.Author = "Meu Cantinho de Estudos";
@@ -445,11 +423,11 @@ namespace MeuCantinhoDeEstudos3.Controllers
                     Search = search
                 };
 
-                var videoAulas = BuscarVideoAulasExportacao(request);
+                IQueryable<VideoAula> videoAulas = BuscarVideoAulas(userId, request);
 
                 //Valores
                 var r = 2;
-                foreach (var videoaula in videoAulas)
+                foreach (var videoaula in await videoAulas.ToListAsync())
                 {
                     sheet.Cells[r, 1].Value = videoaula.Descricao;
                     sheet.Cells[r, 2].Value = videoaula.LinkVideo;
@@ -468,13 +446,16 @@ namespace MeuCantinhoDeEstudos3.Controllers
         public async Task<ActionResult> GerarRelatorioPDF(string ordemClassificacao, string search)
         {
             //RazorPDF2
+
+            var userId = User.Identity.GetUserId<int>();
+
             var request = new FiltroRequest
             {
                 OrdemClassificacao = ordemClassificacao,
                 Search = search
             };
 
-            var videoAulas = BuscarVideoAulasExportacao(request);
+            var videoAulas = BuscarVideoAulas(userId, request);
 
             return new PdfActionResult("VideoAulasReport", await videoAulas.ToListAsync())
             {

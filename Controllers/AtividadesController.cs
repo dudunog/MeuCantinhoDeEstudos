@@ -57,16 +57,30 @@ namespace MeuCantinhoDeEstudos3.Controllers
             ViewBag.ParametroClassificacaoDescricao = string.IsNullOrEmpty(ordemClassificacao) ? "descricao_desc" : "";
             ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
 
-            var paginatedList = await BuscarAtividades(userId, request);
+            var paginatedList = await PaginarAtividades(userId, request);
 
             return View(paginatedList);
         }
 
-        private async Task<PaginatedList<Atividade>> BuscarAtividades(int userId, FiltroRequest request)
+        private async Task<PaginatedList<Atividade>> PaginarAtividades(int userId, FiltroRequest request)
+        {
+            IQueryable<Atividade> atividades = BuscarAtividades(userId, request);
+
+            int tamanhoPagina = 100;
+
+            return await PaginatedList<Atividade>.CreateAsync(atividades, request.NumeroPagina ?? 1, tamanhoPagina);
+        }
+
+        private IQueryable<Atividade> BuscarAtividades(int userId, FiltroRequest request)
         {
             var atividades = db.Atividades
-                             .Include(a => a.Tema.Materia)
-                             .Where(a => a.Tema.Materia.UsuarioId == userId);
+                            .Include(a => a.Tema.Materia)
+                            .Where(a => a.Tema.Materia.UsuarioId == userId);
+
+            if (!string.IsNullOrEmpty(request.Search))
+            {
+                atividades = atividades.Where(a => a.Descricao.ToUpper().Contains(request.Search.ToUpper()));
+            }
 
             switch (request.OrdemClassificacao)
             {
@@ -84,13 +98,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                     break;
             }
 
-            if (!string.IsNullOrEmpty(request.Search))
-            {
-                atividades = atividades.Where(a => a.Descricao.ToUpper().Contains(request.Search.ToUpper()));
-            }
-
-            int tamanhoPagina = 100;
-            return await PaginatedList<Atividade>.CreateAsync(atividades, request.NumeroPagina ?? 1, tamanhoPagina);
+            return atividades;
         }
 
         // GET: Atividades/Details/5
@@ -376,41 +384,11 @@ namespace MeuCantinhoDeEstudos3.Controllers
             return View();
         }
 
-        private IQueryable<Atividade> BuscarAtividadesExportacao(FiltroRequest request)
+        [HttpGet]
+        public async Task<FileResult> GerarRelatorioExcel(string ordemClassificacao, string search)
         {
             var userId = User.Identity.GetUserId<int>();
 
-            var atividades = db.Atividades
-                            .Include(a => a.Tema.Materia)
-                            .Where(a => a.Tema.Materia.UsuarioId == userId);
-
-            if (!string.IsNullOrEmpty(request.Search))
-            {
-                atividades = atividades.Where(a => a.Descricao.ToUpper().Contains(request.Search.ToUpper()));
-            }
-
-            switch (request.OrdemClassificacao)
-            {
-                case "Date":
-                    atividades = atividades.OrderBy(a => a.DataCriacao);
-                    break;
-                case "date_desc":
-                    atividades = atividades.OrderByDescending(a => a.DataCriacao);
-                    break;
-                case "descricao_desc":
-                    atividades = atividades.OrderByDescending(a => a.Descricao);
-                    break;
-                default:
-                    atividades = atividades.OrderBy(a => a.Descricao);
-                    break;
-            }
-
-            return atividades;
-        }
-
-        [HttpGet]
-        public FileResult GerarRelatorioExcel(string ordemClassificacao, string search)
-        {
             using (var excelPackage = new ExcelPackage())
             {
                 excelPackage.Workbook.Properties.Author = "Meu Cantinho de Estudos";
@@ -438,11 +416,11 @@ namespace MeuCantinhoDeEstudos3.Controllers
                     Search = search
                 };
 
-                var atividades = BuscarAtividadesExportacao(request);
+                var atividades = BuscarAtividades(userId, request);
 
                 //Valores
                 var r = 2;
-                foreach (var atividade in atividades)
+                foreach (var atividade in await atividades.ToListAsync())
                 {
                     sheet.Cells[r, 1].Value = atividade.Descricao;
                     sheet.Cells[r, 2].Value = atividade.Tema.Materia.Nome;
@@ -460,13 +438,16 @@ namespace MeuCantinhoDeEstudos3.Controllers
         public async Task<ActionResult> GerarRelatorioPDF(string ordemClassificacao, string search)
         {
             //RazorPDF2
+
+            var userId = User.Identity.GetUserId<int>();
+
             var request = new FiltroRequest
             {
                 OrdemClassificacao = ordemClassificacao,
                 Search = search
             };
 
-            var atividades = BuscarAtividadesExportacao(request);
+            IQueryable<Atividade> atividades = BuscarAtividades(userId, request);
 
             return new PdfActionResult("AtividadesReport", await atividades.ToListAsync())
             {

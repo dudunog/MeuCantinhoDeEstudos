@@ -55,44 +55,21 @@ namespace MeuCantinhoDeEstudos3.Controllers
             ViewBag.ParametroClassificacaoNome = string.IsNullOrEmpty(ordemClassificacao) ? "name_desc" : "";
             ViewBag.ParametroClassificacaoData = ordemClassificacao == "Date" ? "date_desc" : "Date";
 
-            var paginatedList = await BuscarMateriasPaginacao(userId, request);
+            PaginatedList<Materia> paginatedList = await PaginarMaterias(userId, request);
 
             return View(paginatedList);
         }
 
-        private async Task<PaginatedList<Materia>> BuscarMateriasPaginacao(int userId, FiltroRequest request)
+        private async Task<PaginatedList<Materia>> PaginarMaterias(int userId, FiltroRequest request)
         {
-            var materias = db.Materias
-                           .Include(m => m.Usuario)
-                           .Where(m => m.UsuarioId == userId);
-
-            switch (request.OrdemClassificacao)
-            {
-                case "Date":
-                    materias = materias.OrderBy(m => m.DataCriacao);
-                    break;
-                case "date_desc":
-                    materias = materias.OrderByDescending(m => m.DataCriacao);
-                    break;
-                case "name_desc":
-                    materias = materias.OrderByDescending(m => m.Nome);
-                    break;
-                default:
-                    materias = materias.OrderBy(s => s.Nome);
-                    break;
-            }
-
-            if (!string.IsNullOrEmpty(request.Search))
-            {
-                materias = materias.Where(m => m.Nome.ToUpper().Contains(request.Search.ToUpper()));
-            }
+            IQueryable<Materia> materias = BuscarMaterias(userId, request);
 
             int tamanhoPagina = 100;
 
             return await PaginatedList<Materia>.CreateAsync(materias, request.NumeroPagina ?? 1, tamanhoPagina);
         }
 
-        private async Task<PaginatedList<Materia>> BuscarTodasMaterias(int userId, FiltroRequest request)
+        private IQueryable<Materia> BuscarMaterias(int userId, FiltroRequest request)
         {
             var materias = db.Materias
                            .Include(m => m.Usuario)
@@ -119,9 +96,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
                 materias = materias.Where(m => m.Nome.ToUpper().Contains(request.Search.ToUpper()));
             }
 
-            int tamanhoPagina = 100;
-
-            return await PaginatedList<Materia>.CreateAsync(materias, request.NumeroPagina ?? 1, tamanhoPagina);
+            return materias;
         }
 
         // GET: Materias/Details/5
@@ -161,7 +136,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
             if (ModelState.IsValid)
             {
                 if (!string.IsNullOrEmpty(materia.CorIdentificacao))
-                    materia.CorIdentificacao = RemovePrefix(materia.CorIdentificacao);
+                    materia.CorIdentificacao = Materia.RemovePrefix(materia.CorIdentificacao);
 
                 materia.UsuarioId = User.Identity.GetUserId<int>();
 
@@ -207,7 +182,7 @@ namespace MeuCantinhoDeEstudos3.Controllers
             if (ModelState.IsValid)
             {
                 if (!string.IsNullOrEmpty(materia.CorIdentificacao))
-                    materia.CorIdentificacao = RemovePrefix(materia.CorIdentificacao);
+                    materia.CorIdentificacao = Materia.RemovePrefix(materia.CorIdentificacao);
                 
                 materia.UsuarioId = User.Identity.GetUserId<int>();
 
@@ -261,11 +236,6 @@ namespace MeuCantinhoDeEstudos3.Controllers
             }
 
             return RedirectToAction("Index");
-        }
-
-        private static string RemovePrefix(string corIdentificacao)
-        {
-            return corIdentificacao.Replace("#", "");
         }
 
         [HttpPost]
@@ -386,41 +356,11 @@ namespace MeuCantinhoDeEstudos3.Controllers
             return View();
         }
 
-        private IQueryable<Materia> BuscarMateriasExportacao(FiltroRequest request)
-        {
-            var userId = User.Identity.GetUserId<int>();
-
-            var materias = db.Materias
-                               .Include(m => m.Usuario)
-                               .Where(m => m.UsuarioId == userId);
-
-            switch (request.OrdemClassificacao)
-            {
-                case "Date":
-                    materias = materias.OrderBy(m => m.DataCriacao);
-                    break;
-                case "date_desc":
-                    materias = materias.OrderByDescending(m => m.DataCriacao);
-                    break;
-                case "name_desc":
-                    materias = materias.OrderByDescending(m => m.Nome);
-                    break;
-                default:
-                    materias = materias.OrderBy(s => s.Nome);
-                    break;
-            }
-
-            if (!string.IsNullOrEmpty(request.Search))
-            {
-                materias = materias.Where(m => m.Nome.ToUpper().Contains(request.Search.ToUpper()));
-            }
-
-            return materias;
-        }
-
         [HttpGet]
         public async Task<FileResult> GerarRelatorioExcel(string ordemClassificacao, string search)
         {
+            var userId = User.Identity.GetUserId<int>();
+
             using (var excelPackage = new ExcelPackage())
             {
                 excelPackage.Workbook.Properties.Author = "Meu Cantinho de Estudos";
@@ -448,11 +388,11 @@ namespace MeuCantinhoDeEstudos3.Controllers
                     Search = search
                 };
 
-                var materias = BuscarMateriasExportacao(request);
+                IQueryable<Materia> materias = BuscarMaterias(userId, request);
 
                 //Valores
                 var r = 2;
-                foreach (var materia in materias)
+                foreach (var materia in await materias.ToListAsync())
                 {
                     sheet.Cells[r, 1].Value = materia.Nome;
                     sheet.Cells[r++, 2].Value = materia.CorIdentificacao;
@@ -469,13 +409,16 @@ namespace MeuCantinhoDeEstudos3.Controllers
         public async Task<ActionResult> GerarRelatorioPDF(string ordemClassificacao, string search)
         {
             //RazorPDF2
+
+            var userId = User.Identity.GetUserId<int>();
+
             var request = new FiltroRequest
             {
                 OrdemClassificacao = ordemClassificacao,
                 Search = search
             };
 
-            var materias = BuscarMateriasExportacao(request);
+            IQueryable<Materia> materias = BuscarMaterias(userId, request);
 
             return new PdfActionResult("MateriasReport", await materias.ToListAsync())
             {

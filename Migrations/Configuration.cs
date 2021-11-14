@@ -12,7 +12,7 @@ namespace MeuCantinhoDeEstudos3.Migrations
             AutomaticMigrationDataLossAllowed = true;
         }
 
-        protected async override void Seed(MeuCantinhoDeEstudosContext context)
+        protected override void Seed(MeuCantinhoDeEstudosContext context)
         {
             //  This method will be called after migrating to the latest version.
 
@@ -43,8 +43,8 @@ namespace MeuCantinhoDeEstudos3.Migrations
             //    Descricao = "Atividade de leitura do livro de matemática sobre conjuntos"
             //};
 
-            //db.Atividades.Add(atividade);
-            //await db.SaveChangesAsync();
+            //context.Atividades.Add(atividade);
+            //await context.SaveChangesAsync();
 
             //VideoAula videoAula = new VideoAula()
             //{
@@ -53,8 +53,8 @@ namespace MeuCantinhoDeEstudos3.Migrations
             //    LinkVideo = "youtube.com/watch?v=dasdasdad"
             //};
 
-            //db.VideoAulas.Add(videoAula);
-            //await db.SaveChangesAsync();
+            //context.VideoAulas.Add(videoAula);
+            //await context.SaveChangesAsync();
 
             //BateriaExercicio bateriaExercicio = new BateriaExercicio()
             //{
@@ -66,8 +66,8 @@ namespace MeuCantinhoDeEstudos3.Migrations
 
             //bateriaExercicio.CalcularAproveitamento();
 
-            //db.BateriasExercicios.Add(bateriaExercicio);
-            //await db.SaveChangesAsync();
+            //context.BateriasExercicios.Add(bateriaExercicio);
+            //await context.SaveChangesAsync();
         }
     }
 }

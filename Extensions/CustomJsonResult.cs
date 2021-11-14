@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Web.Mvc;
+using Newtonsoft.Json;
 
 namespace MeuCantinhoDeEstudos3.Extensions
 {

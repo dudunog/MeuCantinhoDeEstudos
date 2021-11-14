@@ -11,8 +11,9 @@ using MeuCantinhoDeEstudos3.Models.ClassesDeLog;
 using EntityFramework.Extensions;
 using EntityFramework.Audit;
 using EntityFramework.Triggers;
-using MeuCantinhoDeEstudos3.Extensions;
 using MeuCantinhoDeEstudos3.Models.Auditoria;
+using System.Data.Entity.Infrastructure;
+using System.Web;
 
 namespace MeuCantinhoDeEstudos3.Models
 {
@@ -44,6 +45,25 @@ namespace MeuCantinhoDeEstudos3.Models
         public DbSet<UsuarioInformacoesLog> UsuarioInformacoesLogs { get; set; }
         public DbSet<UsuarioInformacoesLogValores> UsuarioInformacoesLogValores { get; set; }
 
+        public static bool IsAssignableToGenericType(Type givenType, Type genericType)
+        {
+            var interfaceTypes = givenType.GetInterfaces();
+
+            foreach (var it in interfaceTypes)
+            {
+                if (it.IsGenericType && it.GetGenericTypeDefinition() == genericType)
+                    return true;
+            }
+
+            if (givenType.IsGenericType && givenType.GetGenericTypeDefinition() == genericType)
+                return true;
+
+            Type baseType = givenType.BaseType;
+            if (baseType == null) return false;
+
+            return IsAssignableToGenericType(baseType, genericType);
+        }
+
         public override int SaveChanges()
         {
             try
@@ -52,7 +72,7 @@ namespace MeuCantinhoDeEstudos3.Models
                     // IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade<>))))
                     typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
                 {
-                    MyDbContextExtensions.ApplyCreationPropert(entry);
+                    ApplyUserPropert(entry);
                 }
 
                 var audit = this.BeginAudit();
@@ -76,7 +96,7 @@ namespace MeuCantinhoDeEstudos3.Models
             }
 
             foreach (var entidade in ChangeTracker.Entries().Where(e => e.Entity != null &&
-                    MyDbContextExtensions.IsAssignableToGenericType(e.Entity.GetType(), typeof(EntidadeAuditada<>))))
+                    IsAssignableToGenericType(e.Entity.GetType(), typeof(EntidadeAuditada<>))))
                     // typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
             {
                 var temArgumentosGenericos = entidade.Entity.GetType().BaseType.GetGenericArguments().Any();
@@ -116,7 +136,7 @@ namespace MeuCantinhoDeEstudos3.Models
                     //IsAssignableToGenericType(e.Entity.GetType(), typeof(IEntidade))))
                     typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
                 {
-                    MyDbContextExtensions.ApplyCreationPropert(entry);
+                    ApplyUserPropert(entry);
                 }
 
                 var audit = this.BeginAudit();
@@ -141,7 +161,7 @@ namespace MeuCantinhoDeEstudos3.Models
             }
 
             foreach (var entidade in ChangeTracker.Entries().Where(e => e.Entity != null &&
-                    MyDbContextExtensions.IsAssignableToGenericType(e.Entity.GetType(), typeof(EntidadeAuditada<>))))
+                    IsAssignableToGenericType(e.Entity.GetType(), typeof(EntidadeAuditada<>))))
                     // typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
             {
                 var temArgumentosGenericos = entidade.Entity.GetType().BaseType.GetGenericArguments().Any();
@@ -170,6 +190,62 @@ namespace MeuCantinhoDeEstudos3.Models
             }
 
             return await this.SaveChangesWithTriggersAsync(base.SaveChangesAsync);
+        }
+
+        public static void ApplyUserPropert(DbEntityEntry entry)
+        {
+
+            if (entry.State == EntityState.Added)
+            {
+                if (entry.Property("UsuarioCriacao") != null)
+                {
+                    entry.Property("UsuarioCriacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
+                }
+            }
+
+            if (entry.State == EntityState.Modified)
+            {
+                entry.Property("DataCriacao").IsModified = false;
+                entry.Property("UsuarioCriacao").IsModified = false;
+
+                if (entry.Property("UsuarioModificacao") != null)
+                {
+                    entry.Property("UsuarioModificacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
+                }
+            }
+        }
+
+        public static void ApplyUserAndDateProperts(DbEntityEntry entry)
+        {
+            var currentTime = DateTime.Now;
+
+            if (entry.State == EntityState.Added)
+            {
+
+                if (entry.Property("DataCriacao") != null)
+                {
+                    entry.Property("DataCriacao").CurrentValue = currentTime;
+                }
+                if (entry.Property("UsuarioCriacao") != null)
+                {
+                    entry.Property("UsuarioCriacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
+                }
+            }
+
+            if (entry.State == EntityState.Modified)
+            {
+                entry.Property("DataCriacao").IsModified = false;
+                entry.Property("UsuarioCriacao").IsModified = false;
+
+                if (entry.Property("UltimaModificacao") != null)
+                {
+                    entry.Property("UltimaModificacao").CurrentValue = currentTime;
+                }
+                if (entry.Property("UsuarioModificacao") != null)
+                {
+                    entry.Property("UsuarioModificacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
+                }
+            }
         }
 
         private static void ApplyAuditInUsuarioEntity(MeuCantinhoDeEstudosContext db, AuditLogger audit)
@@ -367,11 +443,6 @@ namespace MeuCantinhoDeEstudos3.Models
                     await db.SaveChangesWithTriggersAsync(db.SaveChangesAsync);
                 }
             }
-        }
-        
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
         }
     }
 }

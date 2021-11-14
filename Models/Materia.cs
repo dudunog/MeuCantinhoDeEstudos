@@ -27,5 +27,10 @@ namespace MeuCantinhoDeEstudos3.Models
         public virtual Usuario Usuario { get; set; }
 
         public virtual ICollection<Tema> Temas { get; set; }
+
+        public static string RemovePrefix(string corIdentificacao)
+        {
+            return corIdentificacao.Replace("#", "");
+        }
     }
 }

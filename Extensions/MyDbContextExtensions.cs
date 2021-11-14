@@ -1,37 +1,17 @@
 ﻿using FastMember;
+using MeuCantinhoDeEstudos3.Models;
 using MeuCantinhoDeEstudos3.Models.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Validation;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace MeuCantinhoDeEstudos3.Extensions
 {
     public static class MyDbContextExtensions
     {
-        public static bool IsAssignableToGenericType(Type givenType, Type genericType)
-        {
-            var interfaceTypes = givenType.GetInterfaces();
-
-            foreach (var it in interfaceTypes)
-            {
-                if (it.IsGenericType && it.GetGenericTypeDefinition() == genericType)
-                    return true;
-            }
-
-            if (givenType.IsGenericType && givenType.GetGenericTypeDefinition() == genericType)
-                return true;
-
-            Type baseType = givenType.BaseType;
-            if (baseType == null) return false;
-
-            return IsAssignableToGenericType(baseType, genericType);
-        }
-
         public async static Task MyBulkInsertAsync<T>(this DbContext @this, IEnumerable<T> entities) where T : class
         {
             try
@@ -39,7 +19,7 @@ namespace MeuCantinhoDeEstudos3.Extensions
                 foreach (var entry in @this.ChangeTracker.Entries().Where(e => e.Entity != null &&
                     typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
                 {
-                    ApplyCreationAndModificationProperts(entry);
+                    MeuCantinhoDeEstudosContext.ApplyUserAndDateProperts(entry);
                 }
 
                 await @this.BulkInsertAsync(entities);
@@ -96,7 +76,7 @@ namespace MeuCantinhoDeEstudos3.Extensions
                 foreach (var entry in @this.ChangeTracker.Entries().Where(e => e.Entity != null &&
                     typeof(IEntidade).IsAssignableFrom(e.Entity.GetType())))
                 {
-                    ApplyCreationAndModificationProperts(entry);
+                    MeuCantinhoDeEstudosContext.ApplyUserAndDateProperts(entry);
                 }
 
                 await @this.BulkUpdateAsync(entities);
@@ -147,62 +127,6 @@ namespace MeuCantinhoDeEstudos3.Extensions
             }
 
             await @this.BulkInsertAsync(entidadesAuditadas);
-        }
-
-        public static void ApplyCreationPropert(DbEntityEntry entry)
-        {
-
-            if (entry.State == EntityState.Added)
-            {
-                if (entry.Property("UsuarioCriacao") != null)
-                {
-                    entry.Property("UsuarioCriacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
-                }
-            }
-
-            if (entry.State == EntityState.Modified)
-            {
-                entry.Property("DataCriacao").IsModified = false;
-                entry.Property("UsuarioCriacao").IsModified = false;
-
-                if (entry.Property("UsuarioModificacao") != null)
-                {
-                    entry.Property("UsuarioModificacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
-                }
-            }
-        }
-
-        public static void ApplyCreationAndModificationProperts(DbEntityEntry entry)
-        {
-            var currentTime = DateTime.Now;
-
-            if (entry.State == EntityState.Added)
-            {
-
-                if (entry.Property("DataCriacao") != null)
-                {
-                    entry.Property("DataCriacao").CurrentValue = currentTime;
-                }
-                if (entry.Property("UsuarioCriacao") != null)
-                {
-                    entry.Property("UsuarioCriacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
-                }
-            }
-
-            if (entry.State == EntityState.Modified)
-            {
-                entry.Property("DataCriacao").IsModified = false;
-                entry.Property("UsuarioCriacao").IsModified = false;
-
-                if (entry.Property("UltimaModificacao") != null)
-                {
-                    entry.Property("UltimaModificacao").CurrentValue = currentTime;
-                }
-                if (entry.Property("UsuarioModificacao") != null)
-                {
-                    entry.Property("UsuarioModificacao").CurrentValue = HttpContext.Current != null ? HttpContext.Current.User.Identity.Name : "Usuario";
-                }
-            }
         }
     }
 }

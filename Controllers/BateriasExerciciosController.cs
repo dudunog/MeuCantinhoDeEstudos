@@ -23,7 +23,7 @@ using System.Web.Mvc;
 namespace MeuCantinhoDeEstudos3.Controllers
 {
     [Authorize]
-    public class BateriasExerciciosController : Extensions.Controller
+    public class BateriasExerciciosController : Controller
     {
         private MeuCantinhoDeEstudosContext db = new MeuCantinhoDeEstudosContext();
 
@@ -68,9 +68,18 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
         public async Task<PaginatedList<BateriaExercicio>> BuscarBateriasPaginacao(int userId, FiltroRequest request)
         {
+            IQueryable<BateriaExercicio> bateriasExercicios = BuscarBateriasExercicios(userId, request);
+
+            int tamanhoPagina = 100;
+
+            return await PaginatedList<BateriaExercicio>.CreateAsync(bateriasExercicios, request.NumeroPagina ?? 1, tamanhoPagina);
+        }
+
+        private IQueryable<BateriaExercicio> BuscarBateriasExercicios(int userId, FiltroRequest request)
+        {
             var bateriasExercicios = db.BateriasExercicios
-                                     .Include(b => b.Tema.Materia)
-                                     .Where(b => b.Tema.Materia.UsuarioId == userId);
+                                     .Include(a => a.Tema.Materia)
+                                     .Where(a => a.Tema.Materia.UsuarioId == userId);
 
             switch (request.OrdemClassificacao)
             {
@@ -120,12 +129,10 @@ namespace MeuCantinhoDeEstudos3.Controllers
 
             if (!string.IsNullOrEmpty(request.Search))
             {
-                bateriasExercicios = bateriasExercicios.Where(a => a.Descricao.ToUpper().Contains(request.Search.ToUpper()));
+                bateriasExercicios = bateriasExercicios.Where(e => e.Descricao.ToUpper().Contains(request.Search.ToUpper()));
             }
 
-            int tamanhoPagina = 100;
-
-            return await PaginatedList<BateriaExercicio>.CreateAsync(bateriasExercicios, request.NumeroPagina ?? 1, tamanhoPagina);
+            return bateriasExercicios;
         }
 
         // GET: BateriaExercicios/Details/5
@@ -441,71 +448,11 @@ namespace MeuCantinhoDeEstudos3.Controllers
             return View();
         }
 
-        private IQueryable<BateriaExercicio> BuscarBateriasExportacao(FiltroRequest request)
+        [HttpGet]
+        public async Task<FileResult> GerarRelatorioExcel(string ordemClassificacao, string search)
         {
             var userId = User.Identity.GetUserId<int>();
 
-            var bateriasExercicios = db.BateriasExercicios
-                                         .Include(a => a.Tema.Materia)
-                                         .Where(a => a.Tema.Materia.UsuarioId == userId);
-
-            if (!string.IsNullOrEmpty(request.Search))
-            {
-                bateriasExercicios = bateriasExercicios.Where(e => e.Descricao.ToUpper().Contains(request.Search.ToUpper()));
-            }
-
-            switch (request.OrdemClassificacao)
-            {
-                case "materia":
-                    bateriasExercicios = bateriasExercicios.OrderBy(b => b.Tema.Materia.Nome);
-                    break;
-                case "materia_desc":
-                    bateriasExercicios = bateriasExercicios.OrderByDescending(b => b.Tema.Materia.Nome);
-                    break;
-                case "tema":
-                    bateriasExercicios = bateriasExercicios.OrderBy(b => b.Tema.Nome);
-                    break;
-                case "tema_desc":
-                    bateriasExercicios = bateriasExercicios.OrderByDescending(b => b.Tema.Nome);
-                    break;
-                case "quantidade_exercicios":
-                    bateriasExercicios = bateriasExercicios.OrderBy(b => b.QuantidadeExercicios);
-                    break;
-                case "quantidade_exercicios_desc":
-                    bateriasExercicios = bateriasExercicios.OrderByDescending(b => b.QuantidadeExercicios);
-                    break;
-                case "quantidade_acertos":
-                    bateriasExercicios = bateriasExercicios.OrderBy(b => b.QuantidadeAcertos);
-                    break;
-                case "quantidade_acertos_desc":
-                    bateriasExercicios = bateriasExercicios.OrderByDescending(b => b.QuantidadeAcertos);
-                    break;
-                case "aproveitamento":
-                    bateriasExercicios = bateriasExercicios.OrderBy(b => b.Aproveitamento);
-                    break;
-                case "aproveitamento_desc":
-                    bateriasExercicios = bateriasExercicios.OrderByDescending(b => b.Aproveitamento);
-                    break;
-                case "Date":
-                    bateriasExercicios = bateriasExercicios.OrderBy(a => a.DataCriacao);
-                    break;
-                case "date_desc":
-                    bateriasExercicios = bateriasExercicios.OrderByDescending(a => a.DataCriacao);
-                    break;
-                case "descricao_desc":
-                    bateriasExercicios = bateriasExercicios.OrderByDescending(a => a.Descricao);
-                    break;
-                default:
-                    bateriasExercicios = bateriasExercicios.OrderBy(a => a.Descricao);
-                    break;
-            }
-
-            return bateriasExercicios;
-        }
-
-        [HttpGet]
-        public FileResult GerarRelatorioExcel(string ordemClassificacao, string search)
-        {
             using (var excelPackage = new ExcelPackage())
             {
                 excelPackage.Workbook.Properties.Author = "Meu Cantinho de Estudos";
@@ -533,11 +480,11 @@ namespace MeuCantinhoDeEstudos3.Controllers
                     Search = search
                 };
 
-                var bateriasExercicios = BuscarBateriasExportacao(request);
+                var bateriasExercicios = BuscarBateriasExercicios(userId, request);
 
                 //Valores
                 var r = 2;
-                foreach (var exercicio in bateriasExercicios)
+                foreach (var exercicio in await bateriasExercicios.ToListAsync())
                 {
                     sheet.Cells[r, 1].Value = exercicio.Descricao;
                     sheet.Cells[r, 2].Value = exercicio.QuantidadeExercicios;
@@ -561,13 +508,16 @@ namespace MeuCantinhoDeEstudos3.Controllers
         public async Task<ActionResult> GerarRelatorioPDF(string ordemClassificacao, string search)
         {
             //RazorPDF2
+
+            var userId = User.Identity.GetUserId<int>();
+
             var request = new FiltroRequest
             {
                 OrdemClassificacao = ordemClassificacao,
                 Search = search
             };
 
-            var bateriasExercicios = BuscarBateriasExportacao(request);
+            var bateriasExercicios = BuscarBateriasExercicios(userId, request);
 
             return new PdfActionResult("BateriasExerciciosReport", await bateriasExercicios.ToListAsync())
             {
